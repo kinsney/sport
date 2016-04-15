@@ -1,0 +1,113 @@
+{% extends "participator_base.html" %}
+{% load static from staticfiles %}
+{% block scripts %}
+{{ block.super }}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ block.super }}
+{% endblock %}
+{% block participator_nav %}
+    {% with active="orderManage" %}{{ block.super }}{% endwith %}
+{% endblock %}
+{% block main %}
+    <div class='ui segment stacked'>
+      <h4 class='ui dividing header'>我的收益</h4>
+      <div class='ui grid statistics'>
+        <div class='statistic  orange'>
+          <div class='value'>
+          <i class='yen small icon'></i>
+            5500
+          </div>
+          <div class='label'>
+            累积收益
+          </div>
+        </div>
+        <div class='statistic orange'>
+          <div class='value'>
+          <i class='star half empty small icon'></i>
+            100%
+          </div>
+          <div class='label'>
+            接单率
+          </div>
+        </div>
+        <div class='statistic  orange'>
+          <div class='value'>
+          <i class='thumbs outline up small icon'></i>
+            100
+          </div>
+          <div class='label'>
+            已成交
+          </div>
+        </div>
+        <div class='statistic  orange'>
+          <div class='value'>
+          <i class='wait small icon'></i>
+            20:20
+          </div>
+          <div class='label'>
+            平分接单时间
+          </div>
+        </div>
+      </div>
+      <div class="ui pointing secondary menu">
+        <a class="item active" data-tab='allOrders'>全部订单</a>
+        <a class="item" data-tab='owner'>我是车主</a>
+        <a class="item" data-tab='renter'>我是租客</a>
+      </div>
+      <div data-tab="allOrders" class="ui tab active">
+        {% for order in orders_all %}
+          <h4 class="header ui orange block top attached ">订单号：{{ order.number }}</h4>
+          <div class="ui attached segment bottom  ">
+            <a class="ui red ribbon label">{{ order.get_status_display }}</a><span>{{ order.bike.name }}</span>
+            <p>{{ order.bike.address }} 租金：¥{{ order.rentMoney }}</p>
+            <div class="item">
+              <div class="ui small image">
+                <img src="{{order.bike.photo.content.url }}" alt="">
+              </div>
+              <div class="content">
+
+              </div>
+            </div>
+            <button class="ui right floated button"></button>
+          </div>
+        {% endfor %}
+      </div>
+      <div data-tab="owner" class="ui  tab">
+        {% for order in orders_owner %}
+          <h4 class="header ui orange block top attached ">订单号：{{ order.number }} </h4>
+          <div class="ui attached segment bottom  ">
+            <a class="ui red ribbon label">{{ order.get_status_display }}</a><span>{{ order.bike.name }}</span><button class="ui right floated button orange">确认订单</button><button class="ui right floated button orange">取消订单</button>
+            <p>{{ order.bike.address }} 租金：¥{{ order.rentMoney }}</p>
+            <div class="item">
+              <div class="ui small image">
+                <img src="{{order.bike.photo.content.url }}" alt="">
+              </div>
+              <div class="content">
+
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      <div data-tab="renter" class="ui tab">
+        {% for order in orders_renter %}
+          <h4 class="header ui orange block top attached ">订单号：{{ order.number }}</h4>
+          <div class="ui attached segment bottom  ">
+            <a class="ui red ribbon label">{{ order.get_status_display }}</a><span>{{ order.bike.name }}</span>
+            <p>{{ order.bike.address }} 租金：¥{{ order.rentMoney }}</p>
+            <div class="item">
+              <div class="ui small image">
+                <img src="{{order.bike.photo.content.url }}" alt="">
+              </div>
+              <div class="content">
+
+              </div>
+            </div>
+            <button class="ui right floated button"></button>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% load static from staticfiles %}
+<aside id="participator-forms" class='column' style="display: none">
+  <div class="inner">
+<!--     <a class="fologo" href="{% url "home" %}"><img src="{% static "images/logo2.png" %}"></a> -->
+    <div class="ui buttons alter">
+      <a class="ui button" href="#login">登录</a>
+      <a class="ui  button" href="#register">注册</a>
+    </div>
+        <form id="login" class='ui large form' method="post" action="{% url "login"%}" data-async="post">
+            {% csrf_token %}
+          <div class='ui stacked segment'>
+              <div class='field'>
+                  <div class='ui left icon input'>
+                      <i class='user icon'></i>
+                      <input type='tel' name='identity' placeholder="请输入手机号码"></input>
+                  </div>
+              </div>
+              <div class='field'>
+                  <div class='ui left icon input'>
+                      <i class='lock icon'></i>
+                      <input type='password' name='password' placeholder="请输入密码"></input>
+                  </div>
+              </div>
+              <div class='ui checkbox'>
+                <input type="checkbox" name="memorize" value="True">
+                <label>记住我</label>
+              </div>
+          </div>
+          <p class="error"
+          data-400="填写不完全"
+          data-403="登录失败"></p>
+        <button type="submit" class='ui fluid large submit button positive'>登 录</button>
+      </form>
+    <form id="register" method="post" action="{% url "register" %}" data-async="post" class="ui form">
+      <div class='ui stacked segment'>
+        <div class='field'>
+            <div class='ui left icon input'>
+                <i class='user icon'></i>
+                <input type='tel' name='phone' maxlength="11" placeholder="请输入手机号码"></input>
+            </div>
+        </div>
+        <div class='field'>
+            <div class='ui left icon input'>
+                <i class='privacy icon'></i>
+                <input type='text' name='code' maxlength="11" placeholder="请输入验证码" required><button type="button" data-action="{% url "register_code" %}" class='ui button positive'>获取</button></input>
+            </div>
+        </div>
+        <div class='field'>
+            <div class='ui left icon input'>
+                <i class='lock icon'></i>
+                <input type='password' name='password' placeholder="请输入密码"></input>
+            </div>
+        </div>
+        <div class='field'>
+            <div class='ui left icon input'>
+                <i class='protect icon'></i>
+                <input type='password' name='confirm' placeholder="请再次输入密码"></input>
+            </div>
+        </div>
+        <div class='field'>
+            <div class='ui left icon input'>
+                <i class='spy icon'></i>
+                <input type='text' name='nickname' placeholder="请输入昵称"></input>
+            </div>
+        </div>
+        <div class='ui checkbox'>
+            <input type="checkbox" name="agree" value="yes" checked>
+            <label><a href="">我已阅读并同意用户注册协议</a></label>
+        </div>
+      </div>
+      <p class="error"
+        data-400="填写不完全/两次密码不同"
+        data-403="验证码错误"
+        data-409="用户已存在"
+        data-421="本日验证码发送超过限制"></p>
+      {% csrf_token %}
+      <button type="submit" class='ui fluid large submit button positive'>注册</button>
+    </form>
+  </div>
+</aside>

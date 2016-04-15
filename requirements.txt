@@ -1,0 +1,5 @@
+Django==1.9.4
+django-constance==1.1.2
+django-picklefield
+Pillow
+pymysql

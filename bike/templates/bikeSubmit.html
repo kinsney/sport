@@ -1,0 +1,457 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% block title %}搜索单车{% endblock %}
+{% block stylesheets %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static "css/bikeSubmit.css" %}">
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script src="{% static "components/checkbox.min.js" %}"></script>
+<script src="http://api.map.baidu.com/api?v=2.0&ak=YOOj78k6VSa1CzmQXrKS9gUm"></script>
+<!-- <script type="text/javascript" src="{% static "js/map.js" %}"></script> -->
+
+<script>
+    var map = new BMap.Map("allmap");    // 创建Map实例
+    map.centerAndZoom(new BMap.Point(116.36765, 39.968237), 16);  // 初始化地图,设置中心点坐标和地图级别
+    map.disableScrollWheelZoom();
+    map.enableDoubleClickZoom();
+    // map.addControl(new BMap.MapTypeControl());   //添加地图类型控件
+    map.setCurrentCity("北京");
+    var top_right_navigation = new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_RIGHT, type: BMAP_NAVIGATION_CONTROL_SMALL}); //右上角，仅包含平移和缩放按钮
+        map.addControl(top_right_navigation);
+        map.addEventListener("click", function (e) {
+            map.clearOverlays();
+            var pointMarker = new BMap.Point(e.point.lng, e.point.lat);
+             // 创建标注的坐标
+            addMarker(pointMarker);
+            $('input[name="longitude"]').val(e.point.lng)
+            $('input[name="latitude"]').val(e.point.lat)
+        });
+    var myGeo = new BMap.Geocoder()
+    function addMarker(point) {
+        var myIcon = new BMap.Icon("{% static "images/map.png" %}", new BMap.Size(50, 110),
+        {   offset: new BMap.Size(0, 0),
+            imageOffset: new BMap.Size(0, 0)
+        });
+        var marker = new BMap.Marker(point, { icon: myIcon });
+        map.addOverlay(marker);
+        marker.enableDragging();
+    }
+
+    var university_data = {
+      {% for province in provinces %}
+        '{{ province | escapejs }}': {
+        {% for city in province.city_set.all %}
+          '{{ city | escapejs }}': [
+          {% for university in city.university_set.all %}
+            '{{ university | escapejs }}',
+          {% endfor %}
+          ],
+        {% endfor %}
+        },
+      {% endfor %}
+    }
+    var brand_data = {
+        {% for brand in brands %}
+          '{{ brand | escapejs }}': [
+          {% for version in brand.version_set.all %}
+            '{{ version | escapejs }}',
+          {% endfor %}
+          ],
+        {% endfor %}
+    }
+
+    var province_current;
+    $('.province.dropdown').dropdown({
+        onChange:function(value){
+            $('.menu.city').html('')
+            $('.text.city').html('选择城市')
+            $('.input.city').val('')
+            $('.menu.university').html('')
+            $('.text.university').html('选择学校')
+            $('.input.university').val('')
+            province_current = value
+            $.each(university_data[value],function(city,universityArry){
+                $('.menu.city').append('<div class="item" data-value='+city+'>'+city+'</div>')
+            })
+            map.centerAndZoom(value,11)
+        }
+    })
+    $('.city.dropdown').dropdown({
+        onChange:function(value){
+            $('.menu.university').html('')
+            $('.text.university').html('选择学校')
+            $('.input.university').val('')
+            university_data[province_current][value].forEach(function(value){
+                $('.menu.university').append('<div class="item" data-value='+value+'>'+value+'</div>')
+            })
+            map.centerAndZoom(value,11)
+        }
+    })
+    $('.university.dropdown').dropdown({
+        onChange:function(value){
+            myGeo.getPoint(value,function(point){
+                if(point){
+                    map.centerAndZoom(point,16);
+                }else{
+                    alert("您选择的地址没有解析到结果！请手动选择")
+                }
+            })
+        }
+    })
+    $('.brand.dropdown').dropdown({
+        onChange:function(value){
+            $('.menu.version').html('')
+            $('.text.version').html('')
+            $('.input.version').val('')
+            brand_data[value].forEach(function(value){
+                $('.menu.version').append('<div class="item" data-value='+value+'>'+value+'</div>')
+            })
+        }
+    })
+     $('input[type="file"]').on("change", function(){
+   var $this = $(this)
+    // Get a reference to the fileList
+    var files = !!this.files ? this.files : [];
+    // If no files were selected, or no FileReader support, return
+    if (!files.length || !window.FileReader) return;
+    // Only proceed if the selected file is an image
+    if (/^image/.test( files[0].type)){
+        // Create a new instance of the FileReader
+        var reader = new FileReader();
+        // Read the local file as a DataURL
+        reader.readAsDataURL(files[0]);
+        // When loaded, set image data as background of div
+        reader.onloadend = function(){
+            $this.parent('i.icon').removeClass('plus square outline').css("background-image","url("+this.result+")");
+            $this.parents('.ui.image').next('.ui.image').find('i.icon').show()
+        }
+    }
+});
+     $('.studentDeposit.checkbox').checkbox({
+        onChecked:function(){
+            $('.studentDeposit.label').text('是')
+        },
+        onUnchecked:function(){
+            $('.studentDeposit.label').text('否')
+        }
+     })
+     $('.bikesubmit.form').form({
+        inline:true,
+        fields:{
+            name :{
+                indentifier:'empty',
+                rules:[
+                    {
+                        type:'empty',
+                        prompt:'请为爱车取个名字'
+                    }
+                ]
+            },
+            amount: {
+                indentifier: 'integer',
+                rules: [
+                    {
+                        type : 'integer[1..100]',
+                        prompt:'请输入一个整数'
+                    }
+                ]
+            },
+            desciption:{
+                indentifier:'desciption',
+                rules:[
+                    {
+                        type:'empty',
+                        prompt:'请简要分享一下爱车的特定或者有趣的故事吧'
+                    }
+                ]
+            },
+            equipment: {
+                identifier: 'equipment',
+                rules: [
+                  {
+                    type   : 'minCount[1]',
+                    prompt : '天啦噜，不会车锁都没有吧'
+                  }
+                ]
+            },
+            version: {
+                identifier: 'version',
+                rules: [
+                  {
+                    type   : 'empty',
+                    prompt : '请先选择品牌，再选择型号，如果找不到爱车型号可通知我们更新车库哟'
+                  }
+                ]
+            },
+            photo1:{
+                identifier:'photo1',
+                rules:[
+                  {
+                    type   : 'empty',
+                    prompt : '为了出租方便，至少上传一张爱车图片吧'
+                  }
+                ]
+            },
+            university:{
+                identifier:'university',
+                rules:[
+                    {
+                    type   : 'empty',
+                    prompt : '选择完省市和城市后，您的大学就会出现列表中哟，如果找不到您的大学，请联系我们及时添加信息'
+                  }
+                ]
+            },
+            address:{
+                identifier:'address',
+                rules:[
+                    {
+                    type   : 'empty',
+                    prompt : '请输入您的详细地址便于租客还车'
+                  }
+                ]
+            },
+            longitude:{
+                identifier:'longitude',
+                rules:[
+                    {
+                    type   : 'empty',
+                    prompt : '请在地图上标上您爱车的大致位置'
+                  }
+                ]
+            },
+            hourRent:{
+                identifier:'rent',
+                rules:[
+                    {
+                        type:'empty',
+                        prompt:'您想免费出租嘛?'
+                    },
+                    {
+                        type: 'integer',
+                        prompt:'为了便于计算，还是输入个整数吧'
+                    }
+
+                ]
+            },
+            minTime:{
+                identifier:'renttime',
+                rules:[
+                    {
+                        type:'integer',
+                        prompt:'为了方便计算，还是输入个整数吧'
+                    },
+                    {
+                        type:'empty',
+                        prompt:'请设置一个时间段'
+                    }
+                ]
+            }
+        }
+     })
+</script>
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+    <div class='ui segment'>
+        <form action="{% url "bikeSubmit" %}" class='ui form bikesubmit' method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+            <div class='ui required segment'>
+                <h4 class='ui header dividing orange'><i class='icon file text outline'></i>车辆信息</h4>
+                <div class='field required'>
+                    <label for="" class='label'>单车名称</label>
+                    <input type="text" class='ui input' name='name' placeholder="如：北邮学十全新迪卡侬5.2">
+                </div>
+                <div class='field required'>
+                    <label for="" class='label'>单车数量</label>
+                    <input type="text" class='ui input' name='amount' placeholder="1">
+                </div>
+                <div class='field'>
+                    {{ bikeTypeForm }}
+                </div>
+                <div class='field required'>
+                    <label for="" class='label required'>选择装备</label>
+                    <select name="equipment"  class='ui dropdown' multiple="">
+                        <option value="lock">车锁</option>
+                        <option value="helmet">头盔</option>
+                        <option value="glove">手套</option>
+                        <option value="phoneHolder">手机支架</option>
+                        <option value="kettleHolder">水壶支架</option>
+                        <option value="backseat">后座</option>
+                        <option value="flashlight">手电筒</option>
+                        <option value="backlight">尾灯</option>
+                        <option value="compass">指南针</option>
+                    </select>
+                </div>
+                <div class='field'>
+                    <label for="" class='label required'>选择品牌</label>
+                    <div class='ui  selection dropdown brand'>
+                        <input type="hidden" name="brand">
+                        <i class="dropdown icon"></i>
+                        <div class="default text">选择品牌</div>
+                        <div class="menu">
+                        {% for brand in brands %}
+                            <div class='item' data-value="{{ brand.name }}">{{ brand.name }}</div>
+                        {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class='field'>
+                    <label for="" class='label required'>选择型号</label>
+                    <div class='ui search selection dropdown'>
+                        <input type="hidden" class='version input' name="version">
+                        <i class="dropdown icon"></i>
+                        <div class="default version text">选择型号(先选择品牌哟)</div>
+                        <div class="menu version">
+                        </div>
+                    </div>
+                </div>
+                <div class='field required'>
+                    <label for="" class='label required'>上传爱车美照</label>
+                    <div class='five fields'>
+                    {% for i in '12345'|make_list %}
+                        <div class="ui image field">
+                            <i class="plus square outline icon massive" style="display: {% ifequal forloop.counter 1 %}block{% else %}none{% endifequal %}"><input type="file" name="photo{{i}}"></i>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+                <div class='field required'>
+                    <label for="" class='label'>简要描述</label>
+                    <input type="text" class='ui input' name='description' placeholder="和租客一起分享爱车的特点或者有趣的故事吧！">
+                </div>
+            </div>
+            <div class='ui segment required field'>
+                <h4 class='ui header dividing orange'><i class='icon world loading'></i>地理位置</h4>
+                <label for="" class='label required'>地理位置</label>
+                <div class='four fields'>
+                    <div class='field'>
+                        <div class='ui search selection dropdown province'>
+                            <input type="hidden" name="province">
+                            <i class="dropdown icon"></i>
+                            <div class="default text">选择省市</div>
+                            <div class="menu">
+                            {% for province in provinces %}
+                                <div class='item' data-value="{{ province.name }}">{{ province.name }}</div>
+                            {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class='field'>
+                        <div class='ui search selection dropdown city'>
+                            <input type="hidden" name="city">
+                            <i class="dropdown icon"></i>
+                            <div class="default text city">选择城市</div>
+                            <div class="menu city">
+                            </div>
+                        </div>
+                    </div>
+                    <div class='field'>
+                        <div class='ui search selection dropdown university'>
+                            <input type="hidden" name="university">
+                            <i class="dropdown icon"></i>
+                            <div class="default text university">选择学校</div>
+                            <div class="menu university">
+                            </div>
+                        </div>
+                    </div>
+                    <div class='field'>
+                        <div >
+                            <input type="text" class='ui input' name="address" placeholder="详细地址如：学十公寓xxx室">
+                        </div>
+                    </div>
+                </div>
+                <div class='field'>
+                    <label for="" class="label required">标注地图（点击地图进行标记）</label>
+                    <div id="allmap">
+                    </div>
+                    <input type="hidden" name='latitude'>
+                    <input type="hidden" name="longitude">
+                </div>
+            </div>
+            <div class='ui segment'>
+                <h4 class='ui header dividing orange'><i class='icon attach'></i>订单规则</h4>
+                <div class='field ui required'>
+                    <label for="" class='label'>价格设置</label>
+                    <div class='ui right labeled input left icon fluid'>
+                        <i class='icon yen'></i>
+                        <input type="text" placeholder="请填写价格" name="hourRent" data-validate="rent">
+                        <div class='ui basic label'>/时</div>
+                    </div>
+                </div>
+                <div class='field ui required'>
+                    <div class='ui right labeled input left icon fluid'>
+                        <i class='icon yen'></i>
+                        <input type="text" placeholder="请填写价格" name="dayRent" data-validate="rent">
+                        <div class='ui basic label'>/天</div>
+                    </div>
+                </div>
+                <div class='field ui required'>
+                    <div class='ui right labeled input left icon fluid'>
+                        <i class='icon yen'></i>
+                        <input type="text" placeholder="请填写价格" name="weekRent" data-validate="rent">
+                        <div class='ui basic label'>/周</div>
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label for="">押金金额（元）</label>
+                <div class='ui input left icon'>
+                        <i class='icon yen'></i>
+                        <input type="text" placeholder="请填写价格" name="deposit">
+                </div>
+                <div class="ui pointing label">不填写视为无押金要求（对一切租客）</div>
+            </div>
+            <div class="field required">
+                <label for="">学生租客是否免押金</label>
+                <div class="ui toggle checkbox studentDeposit">
+                    <input type="checkbox" name="studentDeposit" checked>
+                    <label class='label studentDeposit'>是</label>
+                </div>
+            </div>
+            <div class="field required">
+                <label for="">租客是否需要抵押证件</label>
+                <div class='ui search selection dropdown'>
+                        <input type="hidden" class='input' name="pledge">
+                        <i class="dropdown icon"></i>
+                        <div class="default text">选择证件</div>
+                        <div class="menu">
+                            <div class="item" data-value='studentId'>学生证</div>
+                            <div class="item" data-value='campusId'>校园卡</div>
+                            <div class="item" data-value='userId'>身份证</div>
+                            <div class="item" data-value='noPledge'>无需抵押</div>
+                        </div>
+                </div>
+            </div>
+            <div class='field required'>
+            <label for="">租期范围</label>
+                <div class='two fields required'>
+                    <div class='field ui right labeled input '>
+                        <div class='ui label'><i class='wait icon'></i>最短</div>
+                        <input type="text" value="8" name="minTime">
+                        <div class='ui basic label'>小时</div>
+                    </div>
+                    <div class='field ui right labeled input '>
+                        <div class='ui label'><i class='wait icon'></i>最长</div>
+                        <input type="text" value="1" name="maxTime">
+                        <div class='ui basic label'>周</div>
+                    </div>
+                </div>
+            </div>
+            <div class='field required'>
+                <label for="">退订规则</label>
+                <div class="ui stacked segment orange">
+                    <p>租客取消订单和提前还车时间以骑客租车系统中记录的时间为准。如与租客产生争议，请在争议发生后24小时内联系客服，我们会尽最大努力维护您的正当权益。</p>
+                </div>
+            </div>
+            <button type="submit" class='ui button orange submit'>确认发布</button>
+        </div>
+        </form>
+    </div>
+{% endblock %}
+{% block footer %}
+{{ block.super }}
+{% endblock %}

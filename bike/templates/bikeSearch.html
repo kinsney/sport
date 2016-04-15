@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% block title %}搜索单车{% endblock %}
+{% block stylesheets %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-datetimepicker.min.css" %}">
+<link rel="stylesheet" href="{% static "css/bikeSearch.css" %}">
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script type="text/javascript" src="{% static "components/accordion.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/library/bootstrap-datetimepicker.min.js"%}"></script>
+<script src="http://api.map.baidu.com/api?v=2.0&ak=YOOj78k6VSa1CzmQXrKS9gUm"></script>
+<script src="{% static "js/bikeSearch.js" %}"></script>
+<script>
+    var map = new BMap.Map("maparea")
+    var point = new BMap.Point(116.367655, 39.968237);
+    map.centerAndZoom(point, 14);
+    map.disableScrollWheelZoom();
+    map.enableDoubleClickZoom();
+    map.setCurrentCity("北京");
+    map.enableScrollWheelZoom(true);
+    var markers={}
+    var myIcon = new BMap.Icon("{% static "images/map.png" %}", new BMap.Size(50, 110),
+        {   offset: new BMap.Size(0, 0),
+            imageOffset: new BMap.Size(0, 0)
+        });
+    var hoverIcon = new BMap.Icon("{% static "images/logo.png" %}", new BMap.Size(50, 110),
+        {   offset: new BMap.Size(0, 0),
+            imageOffset: new BMap.Size(0, 0)
+        });
+    var myGeo = new BMap.Geocoder()
+    var $form = $('#filter_form')
+    var university_data = {
+        {% for city in citys %}
+          '{{ city | escapejs }}': [
+          {% for university in city.university_set.all %}
+            '{{ university | escapejs }}',
+          {% endfor %}
+          ],
+        {% endfor %}
+    }
+    function hoverEvent(){
+        var pt = this.getPosition()
+        var hoverMarker = new BMap.Marker(pt,{icon:hoverIcon})
+        hoverMarker.number = this.number
+        console.log(hoverMarker.number)
+        $('.bikes .card').not('#'+hoverMarker.number).hide()
+        map.removeOverlay(this)
+        map.addOverlay(hoverMarker);
+        hoverMarker.addEventListener('mouseout',function(){
+            $('.bikes .card').show()
+            var pt = this.getPosition()
+            var marker = new BMap.Marker(pt,{icon:myIcon})
+            marker.number = this.number
+            markers[marker.number] = marker
+            map.removeOverlay(this)
+            map.addOverlay(marker)
+            marker.addEventListener('mouseover',hoverEvent)
+        })
+    }
+    function renderMap(data){
+        data.forEach(function(value,index){
+                            var pt = new BMap.Point(value["longitude"],value["latitude"])
+                            if(index == 0)map.centerAndZoom(pt,18);
+                            var marker = new BMap.Marker(pt,{icon:myIcon})
+                            marker.number = value["number"]
+                            map.addOverlay(marker);
+                            markers[marker.number]=marker
+                            marker.addEventListener('mouseover',hoverEvent)
+                        })
+    }
+    function refresh(){
+            $.ajax({
+                    url: $form.attr('action'),
+                    method: $form.attr('method'),
+                    data: $form.serialize(),
+                    success: function (data) {
+                        data = $.parseJSON(data)
+                        $('.bikes').html(data["html"])
+                        map.clearOverlays()
+                        markers={}
+                        renderMap(data["bikes"])
+                    },
+                    error: function (xhr) {
+                      console.log(xhr)
+                    }
+                })
+    }
+        $('.city.dropdown').dropdown({
+            onChange:function(value){
+                $('.menu.university').html('')
+                $('.text.university').html('选择学校')
+                $('.input.university').val('')
+                university_data[value].forEach(function(value){
+                    $('.menu.university').append('<div class="item" data-value='+value+'>'+value+'</div>')
+                })
+                map.centerAndZoom(value,11)
+
+            }
+        })
+        $('.university.dropdown').dropdown({
+            onChange:function(value){
+                myGeo.getPoint(value,function(point){
+                    if(point){
+                        map.centerAndZoom(point,16);
+                    }else{
+                        alert("您选择的地址没有解析到结果！请手动选择")
+                    }
+                })
+                refresh()
+            }
+        })
+
+        $('.bike.dropdown').dropdown({
+            onChange:function(value){
+                refresh()
+            }
+        })
+
+        $('.deposit.dropdown').dropdown({
+            onChange:function(value){
+                refresh()
+            }
+        })
+
+        $('.height.dropdown').dropdown({
+            onChange:function(value){
+                refresh()
+            }
+        })
+
+        $('.rent.dropdown').dropdown({
+            onChange:function(value){
+                refresh()
+            }
+        })
+        $('.bikes').on('mouseover mouseout','.card',function(event){
+            if(event.type =="mouseover") {
+                    number = $(this).attr('id')
+                    $.each(markers,function(key,value){
+                        key==number?value.show():value.hide()
+                    })
+                }else if(event.type =='mouseout'){
+                $.each(markers,function(key,value){
+                        value.show()
+                    })
+            }
+        })
+        data = [
+            {% for bike in bikes %}
+                {
+                    "latitude":{{bike.address.latitude | escapejs}},
+                    "longitude":{{bike.address.longitude | escapejs}},
+                    "number":{{bike.number|escapejs}}
+                },
+            {% endfor %}
+        ]
+        renderMap(data)
+
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div  class='ui grid stackable' >
+    <div class="two column row" id="mainblock">
+        <div class='column' id="leftblock">
+            <div class='scroll'>
+            <form id="filter_form" action="{% url "bikeSearch" %}" method="post" >
+            {% csrf_token %}
+            <div class='grid segment ui stackable attached '>
+                    <div class='eight wide column'>
+                        <div class='ui search selection dropdown city fluid'>
+                        <input type="hidden" name="city">
+                        <i class="dropdown icon"></i>
+                        <div class="default text city">选择城市</div>
+                        <div class="menu city">
+                            {% for city in citys %}
+                                <div class='item' data-value="{{ city.name }}">{{ city.name }}</div>
+                            {% endfor %}
+                        </div>
+                        </div>
+                    </div>
+                    <div class=' eight wide column'>
+                        <div class='ui search selection dropdown university fluid'>
+                            <input type="hidden" name="university">
+                            <i class="dropdown icon"></i>
+                            <div class="default text university">选择学校</div>
+                            <div class="menu university">
+                            </div>
+                        </div>
+                    </div>
+                    <div class='eight wide column'>
+                        <div class='fluid ui left labeled ui input right icon'>
+                            <div class="ui basic label">取车时间</div>
+                            <input type="text" id="starttimecal" name="starttime" value="{{ starttime|default:''|date:"Y-m-d H:i" }}" class="" readonly>
+                            <i class='calendar icon'></i>
+                        </div>
+                    </div>
+                    <div class='eight wide column'>
+                        <div class='fluid ui left labeled ui input right icon'>
+                            <div class="ui basic label">还车时间</div>
+                            <input type="text" id="endtimecal" value="{{ endtime|default:''|date:"Y-m-d H:i" }}" name="endtime" class="" readonly>
+                            <i class='calendar icon'></i>
+                        </div>
+                    </div>
+                    <div class='ui accordion sixteen wide column'>
+                        <div class='title'><i class='icon dropdown'></i>筛选条件</div>
+                        <div class='content grid ui stackable'>
+                        <div class='row'>
+                            <div class='eight wide column'>
+                                <div class='ui search selection dropdown fluid bike'>
+                                <input type="hidden" name="category">
+                                <i class="dropdown icon"></i>
+                                <div class="default text bike">选择单车类型</div>
+                                <div class="menu bike">
+                                    <div class='item' data-value="null">全部</div>
+                                    {% for category in categories %}
+                                        <div class='item' data-value="{{ category.name }}">{{ category.name }}</div>
+                                    {% endfor %}
+                                </div>
+                                </div>
+                            </div>
+                            <div class="eight wide column">
+                                <div class='ui dropdown labeled icon button fluid deposit'>
+                                    <input type="hidden" name="deposit">
+                                    <i class="icon filter"></i>
+                                    <span class='text'>学生租客是否免租金</span>
+                                    <div class='menu'>
+                                        <div class='item' data-value="">全部</div>
+                                        <div class='item' data-value="True">是</div>
+                                        <div class='item' data-value="False">否</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class='eight wide column'>
+                                <div class='ui search selection dropdown height fluid left labeled' tabindex="0">
+                                    <label for="">选择身高</label>
+                                    <input type="hidden" name="height">
+                                    <i class="dropdown icon"></i>
+                                    <div class="default text"></div>
+                                    <div class="menu">
+                                        <div class='item' data-value="null">全部</div>
+                                        <div class='item' data-value="155以下">155以下</div>
+                                        <div class='item' data-value="155-165">155-165</div>
+                                        <div class='item' data-value="165-175">165-175</div>
+                                        <div class='item' data-value="175-185">175-185</div>
+                                        <div class='item' data-value="185以上">185以上</div>
+                                    </div>
+                                    <label for="">cm</label>
+                                </div>
+                            </div>
+                            <div class='eight wide column'>
+                                <div class='ui search selection dropdown rent fluid left labeled' tabindex="0">
+                                    <label for="">每日价格<i class='icon yen'></i></label>
+                                    <input type="hidden" name="price">
+                                    <i class="dropdown icon"></i>
+                                    <div class="default text"></div>
+                                    <div class="menu">
+                                        <div class='item' data-value="null">全部</div>
+                                        <div class='item' data-value="0">0-15</div>
+                                        <div class='item' data-value="15">15-30</div>
+                                        <div class='item' data-value="30">30-45</div>
+                                        <div class='item' data-value="45">45以上</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+
+                </div>
+                </form>
+                <div class="ui bottom segment attached" style="border-top:0">
+                    <div class='ui two stackable cards link bikes'>
+                            {% include "bikeCard.html" %}
+                    </div>
+                </div>
+        </div>
+        </div>
+        <div id="maparea" id="map" class='column'>
+
+        </div>
+</div>
+{% endblock %}
+{% block footer %}
+{% endblock %}

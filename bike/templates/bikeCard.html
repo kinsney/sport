@@ -1,0 +1,31 @@
+{% load static from staticfiles %}
+<link rel="stylesheet" href="{% static "css/bikeCard.css"%}">
+{% for bike in bikes %}
+<div class='ui card' id="{{ bike.number }}">
+    <a href="{% url "overbooking" bike.number starttime|date:"Y-m-d H:i" endtime|date:"Y-m-d H:i" %}" class='ui image'>
+        <label class="ui left ribbon label" style="z-index: 99">{{ bike.get_status_display }}</label>
+        <img class='visible content' src="{{ bike.photo.content.url }}" alt="">
+        <div class='price ui bottom left attached'>
+            <div class='ui mini statistic'>
+                <div class='value'>
+                    <i class='icon ui yen tiny'></i>{{ bike.dayRent }}<span>/天</span>
+                </div>
+            </div>
+            <div class='ui mini statistic'>
+                <div class=' ui value'>
+                    <i class='icon ui yen tiny'></i>{{ bike.hourRent}}<span>/小时</span>
+                </div>
+            </div>
+            <div class='ui mini statistic'>
+                <div class='value'>
+                    <i class='icon ui yen tiny'></i>{{ bike.weekRent }}<span>/周</span>
+                </div>
+            </div>
+    </div>
+    </a>
+    <div class="content">
+        <div class="header">{{ bike.name }}<!-- <a class="ui image label floated bottom right"><img src="{% static "images/man.png" %}">{{ bike.owner.nickname }}</a> --></div>
+        <div class="description">{{ bike.version.category }}-{{ bike.address }}</div>
+    </div>
+</div>
+{% endfor %}

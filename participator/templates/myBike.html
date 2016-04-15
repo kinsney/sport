@@ -1,0 +1,212 @@
+{% extends "participator_base.html" %}
+{% load static from staticfiles %}
+{% load tagLibrary %}
+{% block stylesheets %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-datetimepicker.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/myBike.css" %}">
+{% endblock %}
+{% block scripts %}
+{{ block.super }}
+<script type="text/javascript" src="{% static "js/library/bootstrap-datetimepicker.min.js"%}"></script>
+    <script>
+            $('input.beginTime').datetimepicker({
+
+            language:'zh-CN',
+
+          });
+          $('input.endTime').datetimepicker({
+
+            language:'zh-CN',
+
+          });
+        $('.progress.howOld').progress({
+        text:{
+            percent:'新旧程度{percent}%'
+        }
+    })
+        $('a.eraseTime').on('click',function(){
+            var $form = $(this).closest('form')
+            var url = $form.data('action')
+            $.ajax({
+                url:url,
+                method:'POST',
+                data:$form.serialize(),
+                success:function(){
+                    $form.find('.label.beginTime').removeClass('red')
+                    $form.find('input.beginTime').val('')
+                    $form.find('.label.endTime').removeClass('red')
+                    $form.find('input.endTime').val('')
+                },
+                error:function(jqXHR,textStatus){
+                    alert('fail')
+                }
+            })
+        })
+    </script>
+{% endblock %}
+
+{% block participator_nav %}
+    {% with active="myBike" %}{{ block.super }}{% endwith %}
+{% endblock %}
+{% block main %}
+<div class='ui stacked'>
+    {% for bike in bikes %}
+        <h4 class='ui dividing header block top attached'>
+            <a class="ui orange image label"><img src="{{ bike.photos.0.content.url }}">{{ bike.name }} <div class="detail">{{ bike.get_status_display }}</div>
+            </a>
+        </h4>
+        <div class='ui horizontal segment attached bottom'>
+                <a class="ui top right attached label label orange">编号：{{ bike.number }}</a>
+                <div class='ui three stackable cards'>
+                    <div class='ui card '>
+                    <div class='ui {% if bike.photos.1 %}fade  reveal {% endif %}image'>
+                        <a class="ui left ribbon label" style="z-index: 99">{{ bike.get_status_display }}</a>
+                        <img class='visible content'src="{{ bike.photos.0.content.url }}" alt="">
+                        {% if bike.photos.1 %}<img class='hidden content'src="{{ bike.photos.1.content.url }}" alt="">{% endif %}
+                    </div>
+                    <div class="content">
+                        <div class="header">{{ bike.name }}<!-- <a class="ui image label floated bottom right"><img src="{% static "images/man.png" %}">{{ bike.owner.nickname }}</a> --></div>
+                        <div class="ui teal progress howOld" data-percent="{{ bike.howOld }}" id="example1">
+                          <div class="bar"><div class="progress"></div></div>
+                        </div>
+                        <div class="description">{{ bike.description }}</div>
+                    </div>
+                    <div class="extra content">
+                            <div class='ui tiny statistic'>
+                                <div class=' ui value'>
+                                    <i class='icon ui yen tiny'></i>{{ bike.hourRent}}
+                                </div>
+                                <div class="label">/小时</div>
+                            </div>
+                            <div class='ui tiny statistic'>
+                                <div class='value'>
+                                    <i class='icon ui yen tiny'></i>{{ bike.dayRent }}
+                                </div>
+                                <div class="label">/天</div>
+                            </div>
+                            <div class='ui tiny statistic'>
+                                <div class='value'>
+                                    <i class='icon ui yen tiny'></i>{{ bike.weekRent }}
+                                </div>
+                                <div class="label">/周</div>
+                            </div>
+                            <span class="right floated">{{ bike.added |date:"Y-m-d H:i:s"}}加入 </span>
+                    </div>
+                </div>
+                <div class='ui card'>
+                    <div class='content'>
+                        <div class='ui item'>
+                            <div class="ui labeled button">
+                                <div class="ui button orange"><i class='heart icon'></i>品牌型号</div>
+                                <a class="ui basic label">
+                                {{ bike.version.brand }}&nbsp{{ bike.version }}
+                                </a>
+                            </div>
+                        </div>
+                        <div class='ui item'>
+                            <div class="ui labeled button">
+                                <div class="ui button">单车类型</div>
+                                <a class="ui basic label">
+                                {{ bike.version.category}}
+                                </a>
+                            </div>
+                        </div>
+                        <div class='ui item'>
+                            <div class="ui labeled button">
+                                <div class="ui button">适合性别</div>
+                                <a class="ui basic label">
+                                <i class='icon {{ bike.sexualFix }}'></i>
+                                {{ bike.get_sexualFix_display }}
+                                </a>
+                            </div>
+                        </div>
+                        <div class='ui item'>
+                            <div class="ui labeled button">
+                                <div class="ui button">适合身高</div>
+                                <a class="ui basic label">
+                                <i class='icon {{ bike.sexualFix }}'></i>
+                                {{ bike.get_suitHeight_display }}
+                                </a>
+                            </div>
+                        </div>
+                        <div class='ui item'>
+                            <div class="ui labeled button">
+                                <div class="ui button">取车地址</div>
+                                <a class="ui basic label">
+                                <i class='icon map'></i>
+                                {{ bike.address }}
+                                </a>
+                            </div>
+                        </div>
+                        <div class='ui item'>
+                            <div class="ui labeled button" >
+                                <div class="ui button">学生免押金</div>
+                                <a class="ui basic label">
+                                {{ bike.studentDeposit|yesno:"是,否,也许" }}
+                                </a>
+                            </div>
+                        </div>
+                        <div class='ui item'>
+                            <div class="ui labeled button" >
+                                <div class="ui button">抵押证件</div>
+                                <a class="ui basic label">
+                                {{ bike.get_pledge_display }}
+                                </a>
+                            </div>
+                        </div>
+                        <div class='ui item'>
+                            <div class="ui labeled button" >
+                                <div class="ui button">租期范围</div>
+                                <a class="ui basic label">
+                                {{ bike.minDuration}}-{{bike.maxDuration}}
+                                </a>
+                            </div>
+                        </div>
+                        <div class='ui item'>
+                            <div class="ui labeled button" >
+                                <div class="ui button">押金金额</div>
+                                <a class="ui basic label">
+                                <i class='yen icon'></i>
+                                {{ bike.deposit }}
+                                </a>
+                            </div>
+                        </div>
+                        <div class='ui item'>
+                            <div class="ui labeled button">
+                                <div class="ui button">免费提供装备</div>
+                                <a class="ui basic label">
+                                {{ bike.equipment|equipment }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class='ui card'>
+                    <h4 class='ui header orange center aligned' style="margin-bottom: 0"><i class='settings icon'></i><div class='content'>设置不可租借时间<div class="sub header">(设置完时间点击确认)</div></div></h4>
+                    <div class='content'>
+                        <form id="timeselect" class="ui form" data-action ="{% url "eraseTime" bike.number %}"  action="{% url "beginTime" bike.number %}" method="POST"  data-async="post">
+                        {% csrf_token %}
+                          <div id="" class="left labeled right icon input ui fluid beginTime">
+                            <div class="ui beginTime {% if bike.beginTime %}red{% endif %} label">开始时间</div>
+                            <input type="text"  name="beginTime" class="beginTime ui input" value="{{ bike.beginTime|default:''|date:"Y-m-d H:i:s"}}"readonly>
+                            <i class='calendar icon'></i>
+                          </div>
+                            <div  class="left labeled right icon input ui fluid endTime" style="margin-bottom: 20px">
+                                <div class="ui endTime label {% if bike.endTime %}red{% endif %}">结束时间</div>
+                                <input type="text"  name="endTime" class="input ui endTime" value="{{ bike.endTime|default:''|date:"Y-m-d H:i:s" }}" readonly>
+                                <i class='calendar icon'></i>
+                            </div>
+                                <button type="submit" class='ui button primary' ><i class="edit icon"></i>确认</button>
+                                <a  class='ui button teal eraseTime ' ><i class="erase icon"></i>清除</a>
+                        </form>
+                    </div>
+                </div>
+                </div>
+                <button class="button positive ui" type="submit" ><i class='icon configure'></i>修改单车</button>
+                <a  class="button negative ui"><i class="icon recycle"></i>删除单车</a>
+        </div>
+
+    {% endfor %}
+</div>
+{% endblock %}

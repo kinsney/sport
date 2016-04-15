@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block stylesheets %}
+{{ block.super }}
+<link  rel="stylesheet" href="{% static "css/swiper.min.css" %}">
+<link rel="stylesheet" href="{% static "css/home.css"%}">
+{% endblock %}
+{% block scripts%}
+{{ block.super }}
+<script type="text/javascript" src="{% static "js/library/swiper.jquery.min.js"%}"></script>
+<script type="text/javascript">
+    var mySwiper = new Swiper('.swiper-container',{
+    loop: true,
+    autoplay:5000,
+    speed:1000,
+    pagination: '#bannerpagination',
+    paginationClickable: true,
+    grabCursor : true,
+    nextButton: '.arrow-right',
+    prevButton: '.arrow-left',
+    parallax:true,
+  });
+
+</script>
+{% endblock %}
+{% block content %}
+
+ {% include "bikeForm.html" %}
+<div class="ui ">
+
+    <a href="#" class="arrow-left"></a>
+    <a href="#" class="arrow-left"></a>
+    <div class="swiper-container swiper-container-horizontal">
+
+        <div class="swiper-wrapper">
+            {% for carousel in carousels %}
+                <div class="swiper-slide" >
+                    <div class="inner" style="background:url({{ carousel.image.url }}) no-repeat;height:620px;background-size: 100% 100%">
+                        <div class="carousel_title ui header huge"data-swiper-parallax="-500">{{ carousel.title }}</div>
+                        <div class="carousel_text ui header large" data-swiper-parallax="-3500">{{ carousel.text }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block footer %}
+{{ block.super }}
+{% endblock %}

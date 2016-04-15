@@ -1,0 +1,141 @@
+{% extends "participator_base.html" %}
+{% load static from staticfiles %}
+{% block stylesheets %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static "css/jquery.recSelector.css"%}">
+<link rel="stylesheet" href="{% static "css/selfCenter.css" %}">
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script type="text/javascript" src="{% static "js/library/jquery.recSelector.js" %}"></script>
+<script>
+    var university_data = {
+      'config': {
+        'title': '选择学校',
+        'empty': '暂无数据'
+      },
+      'data': {
+      {% for province in provinces %}
+        '{{ province | escapejs }}': {
+        {% for city in province.city_set.all %}
+          '{{ city | escapejs }}': [
+          {% for university in city.university_set.all %}
+            '{{ university | escapejs }}',
+          {% endfor %}
+          ],
+        {% endfor %}
+        },
+      {% endfor %}
+      }
+}
+ $('input[type="file"]').on("change", function(){
+   var $this = $(this)
+    // Get a reference to the fileList
+    var files = !!this.files ? this.files : [];
+    // If no files were selected, or no FileReader support, return
+    if (!files.length || !window.FileReader) return;
+    // Only proceed if the selected file is an image
+    if (/^image/.test( files[0].type)){
+        // Create a new instance of the FileReader
+        var reader = new FileReader();
+        // Read the local file as a DataURL
+        reader.readAsDataURL(files[0]);
+        // When loaded, set image data as background of div
+        reader.onloadend = function(){
+            $this.parent().siblings('.img_content').css("background-image","url("+this.result+")");
+        }
+    }
+});
+$('[name="school"]').recSelector(university_data);
+</script>
+{% endblock %}
+{% block participator_nav %}
+    {% with active="selfCenter" %}{{ block.super }}{% endwith %}
+{% endblock %}
+{% block main %}
+<div class="ui top attached tabular menu">
+  <a class="item active" data-tab='primary'>基本信息 </a>
+  <a class="item" data-tab='verify'>验证信息 </a>
+</div>
+  <div data-tab="primary" class='ui bottom attached segment tab active'>
+        <div class="ui card">
+            <div class="image">
+              <img src="{% static "images/man.png"%}">
+            </div>
+            <div class="content">
+              <div class="header">{{ participator.nickname }}</div>
+              <div class="meta">
+                <a>好友</a>
+              </div>
+              <div class="description">{{ participator.get_status_display }}</div>
+            </div>
+            <div class="extra content">
+              <span class="right floated">2013年加入 </span>
+              <div class='ui star rating readonly' data-rating="{{ participator.level }}"></div>
+            </div>
+            <div class='extra content'>
+                <div class='ui button'>
+                    修改
+                </div>
+            </div>
+      </div>
+  </div>
+  <div data-tab = 'verify' class='ui segment tab bottom attached'>
+    <form action="{% url "verifyInfo" %}" class='ui form' method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h4 class='ui dividing header'>目前只支持高校学生实名认证，认证信息将会被保密处理</h4>
+            <div class='field'>
+                <label for="realname">真实姓名</label>
+                {% ifequal participator.status  'verified' %}
+                <div class='ui segment'>{{ participator.realname }}</div>
+                {% else %}
+                <input type="text" name='realname' placeholder="请输入真实姓名" value='{{ participator.realname }}'>
+                {% endifequal %}
+            </div>
+            <div class='field'>
+                <label for="id">身份证号</label>
+                {% ifequal participator.status  'verified' %}
+                <div class='ui segment'>{{ participator.PersonId }}</div>
+                {% else %}
+                <input type="text" name='PersonId' placeholder="请输入身份证号" value='{{ participator.PersonId }}'>
+                {% endifequal %}
+            </div>
+            <div class='field'>
+                <label for="university">所在学校</label>
+                {% ifequal participator.status  'verified' %}
+                <div class='ui segment'>{{ participator.school }}</div>
+                {% else %}
+                <input type="text" name='school' placeholder="请点击输入学校" value='{{ participator.school |default:''}}'>
+                {% endifequal %}
+            </div>
+            <div class='field'>
+                <label for="studentid">学号</label>
+                {% ifequal participator.status  'verified' %}
+                <div class='ui segment'>{{ participator.studentId }}</div>
+                {% else %}
+                <input type="text" name='studentId' placeholder="请输入学号" value='{{ participator.studentId }}'>
+                {% endifequal %}
+            </div>
+            <div class='three fields'>
+              {% for verifyCategory in verifyCategories %}
+                <div class='field'>
+                    <label for="">{{ verifyCategory.title }}</label>
+                    <div class="ui image verifyPic">
+                        <div class='img_content' style="background: url({{ verifyCategory.attachment.attachment.url|default:verifyCategory.hint.url }})"></div>
+                        <div class='ui button'><i class='upload icon'></i>点击上传<input type="file" name="#{{ forloop.counter }}"></div>
+                    </div>
+                </div>
+              {% endfor %}
+            </div>
+            <div class='ui divider'></div>
+            <div class="field dividing ">
+              {% if participator.status == 'verified' %}
+                <button type="submit" class='ui button positive'><i class='icon edit'></i>提交验证信息</button>
+              {% else %}
+                <button  type="submit" class='ui button positive'><i class='icon edit'></i>提交验证信息</button>
+              {% endif %}
+            </div>
+    </form>
+  </div>
+{% endblock %}

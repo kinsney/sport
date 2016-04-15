@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% block stylesheets %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static "css/participator-base.css" %}">
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+{% block participator_nav %}
+<div class="ui three item menu">
+  <a class="{% ifequal active "selfCenter" %}active{% endifequal %} item" {% if active != "selfCenter" %} href="{% url "selfCenter" %}"
+    {% endif %} >个人信息</a>
+  <a class="{% ifequal active "orderManage" %}active{% endifequal %} item" {% if active != "orderManage" %} href="{% url "orderManage" %}"
+    {% endif %}>订单管理</a>
+  <a class="{% ifequal active "myBike" %}active{% endifequal %} item" {% if active != "myBike" %} href="{% url "myBike" %}"
+    {% endif %} >我的单车</a>
+</div>
+{% endblock %}
+    {% block main %}
+
+    {% endblock %}
+{% endblock %}
+{% block footer %}
+{{ block.super }}
+{% endblock %}
