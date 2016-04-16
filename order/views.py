@@ -64,6 +64,7 @@ def submitDone(request):
             order.deposit = deposit
             order.pledge = pledge
             order.equipments = equipments
+            order.amount = amount
             order.save()
         else :
             return HttpResponseBadRequest()

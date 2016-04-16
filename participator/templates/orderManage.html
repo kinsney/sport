@@ -1,11 +1,13 @@
 {% extends "participator_base.html" %}
 {% load static from staticfiles %}
+{% load tagLibrary %}
 {% block scripts %}
 {{ block.super }}
 {% endblock %}
 
 {% block stylesheets %}
-    {{ block.super }}
+{{ block.super }}
+<link rel="stylesheet" href="{% static "css/orderManage.css"%}">
 {% endblock %}
 {% block participator_nav %}
     {% with active="orderManage" %}{{ block.super }}{% endwith %}
@@ -57,20 +59,37 @@
         <a class="item" data-tab='renter'>我是租客</a>
       </div>
       <div data-tab="allOrders" class="ui tab active">
-        {% for order in orders_all %}
-          <h4 class="header ui orange block top attached ">订单号：{{ order.number }}</h4>
+          {% for order in orders_owner %}
+          <h4 class="header ui orange block top attached ">订单号：{{ order.number }} </h4>
           <div class="ui attached segment bottom  ">
             <a class="ui red ribbon label">{{ order.get_status_display }}</a><span>{{ order.bike.name }}</span>
             <p>{{ order.bike.address }} 租金：¥{{ order.rentMoney }}</p>
-            <div class="item">
-              <div class="ui small image">
-                <img src="{{order.bike.photo.content.url }}" alt="">
-              </div>
-              <div class="content">
-
+            <div class="ui items">
+              <div class="item">
+                <div class="ui small image">
+                  <img src="{{order.bike.photo.content.url }}" alt="">
+                </div>
+                <div class="content">
+                    <dl class="horizontal-list">
+                      <dt>价格：</dt><dd>¥{{ order.bike.dayRent }}/天¥{{ order.bike.hourRent }}/小时¥{{ order.bike.weekRent }}/周</dd>
+                      <dt>取车时间：</dt><dd>{{ order.beginTime|date:"Y-m-d H:i" }}</dd>
+                      <dt>还车时间：</dt><dd>{{ order.endTime|date:"Y-m-d H:i" }}</dd>
+                      <dt>选择装备：</dt><dd>{{ order.equipments|equipment }}</dd>
+                      <dt>单车数量：</dt><dd>{{ order.amount }}</dd>
+                    </dl>
+                    <dl class="horizontal-list">
+                      <dt>应付押金：</dt><dd>¥{{ order.deposit }}</dd>
+                      <dt>抵押证件：</dt><dd>{{ order.get_pledge_display }}</dd>
+                      <dt>租客姓名：</dt><dd>{{ order.renter.nickname }}</dd>
+                      {% ifequal order.renter participator %}<dt>车主手机：</dt><dd>{{ order.bike.owner.user.username }}</dd>{% else %}<dt>车主手机：</dt><dd>{{ order.renter.user.username }}</dd>{% endifequal %}
+                      <dt>预定时间：</dt><dd>{{ order.added|date:"Y-m-d H:i" }}</dd>
+                    </dl>
+                </div>
               </div>
             </div>
-            <button class="ui right floated button"></button>
+            <div class="clearfix">
+              <button class="ui right floated button orange">确认订单</button><button class="ui right floated button orange">取消订单</button>
+            </div>
           </div>
         {% endfor %}
       </div>
@@ -78,34 +97,69 @@
         {% for order in orders_owner %}
           <h4 class="header ui orange block top attached ">订单号：{{ order.number }} </h4>
           <div class="ui attached segment bottom  ">
-            <a class="ui red ribbon label">{{ order.get_status_display }}</a><span>{{ order.bike.name }}</span><button class="ui right floated button orange">确认订单</button><button class="ui right floated button orange">取消订单</button>
+            <a class="ui red ribbon label">{{ order.get_status_display }}</a><span>{{ order.bike.name }}</span>
             <p>{{ order.bike.address }} 租金：¥{{ order.rentMoney }}</p>
-            <div class="item">
-              <div class="ui small image">
-                <img src="{{order.bike.photo.content.url }}" alt="">
+            <div class="ui items">
+              <div class="item">
+                <div class="ui small image">
+                  <img src="{{order.bike.photo.content.url }}" alt="">
+                </div>
+                <div class="content">
+                    <dl class="horizontal-list">
+                      <dt>价格：</dt><dd>¥{{ order.bike.dayRent }}/天¥{{ order.bike.hourRent }}/小时¥{{ order.bike.weekRent }}/周</dd>
+                      <dt>取车时间：</dt><dd>{{ order.beginTime|date:"Y-m-d H:i" }}</dd>
+                      <dt>还车时间：</dt><dd>{{ order.endTime|date:"Y-m-d H:i" }}</dd>
+                      <dt>选择装备：</dt><dd>{{ order.equipments|equipment }}</dd>
+                      <dt>单车数量：</dt><dd>{{ order.amount }}</dd>
+                    </dl>
+                    <dl class="horizontal-list">
+                      <dt>应付押金：</dt><dd>¥{{ order.deposit }}</dd>
+                      <dt>抵押证件：</dt><dd>{{ order.get_pledge_display }}</dd>
+                      <dt>租客姓名：</dt><dd>{{ order.renter.nickname }}</dd>
+                      <dt>租客手机：</dt><dd>{{ order.renter.user.username }}</dd>
+                      <dt>预定时间：</dt><dd>{{ order.added|date:"Y-m-d H:i" }}</dd>
+                    </dl>
+                </div>
               </div>
-              <div class="content">
-
-              </div>
+            </div>
+            <div class="clearfix">
+              <button class="ui right floated button orange">确认订单</button><button class="ui right floated button orange">取消订单</button>
             </div>
           </div>
         {% endfor %}
       </div>
       <div data-tab="renter" class="ui tab">
         {% for order in orders_renter %}
-          <h4 class="header ui orange block top attached ">订单号：{{ order.number }}</h4>
+          <h4 class="header ui orange block top attached ">订单号：{{ order.number }} </h4>
           <div class="ui attached segment bottom  ">
             <a class="ui red ribbon label">{{ order.get_status_display }}</a><span>{{ order.bike.name }}</span>
             <p>{{ order.bike.address }} 租金：¥{{ order.rentMoney }}</p>
-            <div class="item">
-              <div class="ui small image">
-                <img src="{{order.bike.photo.content.url }}" alt="">
-              </div>
-              <div class="content">
-
+            <div class="ui items">
+              <div class="item">
+                <div class="ui small image">
+                  <img src="{{order.bike.photo.content.url }}" alt="">
+                </div>
+                <div class="content">
+                    <dl class="horizontal-list">
+                      <dt>价格：</dt><dd>¥{{ order.bike.dayRent }}/天¥{{ order.bike.hourRent }}/小时¥{{ order.bike.weekRent }}/周</dd>
+                      <dt>取车时间：</dt><dd>{{ order.beginTime|date:"Y-m-d H:i" }}</dd>
+                      <dt>还车时间：</dt><dd>{{ order.endTime|date:"Y-m-d H:i" }}</dd>
+                      <dt>选择装备：</dt><dd>{{ order.equipments|equipment }}</dd>
+                      <dt>单车数量：</dt><dd>{{ order.amount }}</dd>
+                    </dl>
+                    <dl class="horizontal-list">
+                      <dt>应付押金：</dt><dd>¥{{ order.deposit }}</dd>
+                      <dt>抵押证件：</dt><dd>{{ order.get_pledge_display }}</dd>
+                      <dt>租客姓名：</dt><dd>{{ order.renter.nickname }}</dd>
+                      <dt>车主电话：</dt><dd>{{ order.bike.owner.user.username }}</dd>
+                      <dt>预定时间：</dt><dd>{{ order.added|date:"Y-m-d H:i" }}</dd>
+                    </dl>
+                </div>
               </div>
             </div>
-            <button class="ui right floated button"></button>
+            <div class="clearfix">
+              <button class="ui right floated button orange">取消订单</button>
+            </div>
           </div>
         {% endfor %}
       </div>

@@ -160,6 +160,7 @@ $.fn.state = function(parameters) {
 
         allow: function(state) {
           module.debug('Now allowing state', state);
+
           states[state] = true;
         },
         disallow: function(state) {

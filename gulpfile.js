@@ -14,7 +14,7 @@ gulp.task('less', function() {
 });
 
 gulp.task('test',function(){
-    exec('python manage.py runserver',function(error){
+    exec('python3 manage.py runserver',function(error){
         if(error)
         console.log(error)
     })

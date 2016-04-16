@@ -9,6 +9,7 @@
 
 {% block scripts %}
 {{ block.super }}
+<script type="text/javascript" src="{% static "components/state.min.js" %}"></script>
 <script type="text/javascript" src="{% static "components/accordion.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/library/bootstrap-datetimepicker.min.js"%}"></script>
 <script src="http://api.map.baidu.com/api?v=2.0&ak=YOOj78k6VSa1CzmQXrKS9gUm"></script>
@@ -119,10 +120,24 @@
             }
         })
 
-        $('.deposit.dropdown').dropdown({
-            onChange:function(value){
-                refresh()
-            }
+        $('.toggle').each(function(key,value){
+            text = $(value).html()
+            $(value).state({
+                text:{
+                    inactive:text,
+                    active:'<i class="checkmark icon"></i>'+text
+                }
+                onActivate:function(value){
+                    var name = $(this).data('name')
+                    $('input[name="deposit"]').val(name)
+                    refresh()
+                }
+                onDeactivate:function(){
+
+                    $('input[name="deposit"]').val('')
+                    refresh()
+                }
+            })
         })
 
         $('.height.dropdown').dropdown({
@@ -224,16 +239,10 @@
                                 </div>
                             </div>
                             <div class="eight wide column">
-                                <div class='ui dropdown labeled icon button fluid deposit'>
-                                    <input type="hidden" name="deposit">
-                                    <i class="icon filter"></i>
                                     <span class='text'>学生租客是否免租金</span>
-                                    <div class='menu'>
-                                        <div class='item' data-value="">全部</div>
-                                        <div class='item' data-value="True">是</div>
-                                        <div class='item' data-value="False">否</div>
-                                    </div>
-                                </div>
+                                        <div class='ui toggle button' data-name="True">是</div>
+                                        <div class='ui toggle button' data-name="False">否</div>
+                                        <input type="hidden" name="deposit" value="">
                             </div>
                         </div>
                         <div class="row">

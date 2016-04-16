@@ -6,6 +6,7 @@ from bike import pledgeChoices
 class Order(models.Model):
     number = models.CharField("编号",max_length=15,null=True,unique=True)
     bike = models.ForeignKey(Bike,verbose_name=u'所租车辆')
+    amount = models.IntegerField("单车数量",default=1)
     added = models.DateTimeField(u'下单时间',auto_now_add=True)
     renter = models.ForeignKey(Participator,verbose_name='租车人')
     beginTime = models.DateTimeField(u'订单开始时间',null=True)
