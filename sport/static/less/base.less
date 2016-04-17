@@ -6,3 +6,58 @@
 input[type="file"]{
     opacity: 0;
 }
+
+@qike_orange:#ff9600;
+@cancel_box_shadow:0px 0px 0px 0px #fff inset !important;
+
+.ui.head{
+  padding: 10px 0px 10px 0px;
+  margin: 0px;
+  .logo{
+    margin-top: 5px;
+    display: table-cell;
+    vertical-align: middle;
+  }
+}
+
+//右侧
+.right.item{
+  .fontSAndW;
+  margin-right: 0px;
+  padding: 0px;
+  a.button{
+    font-weight: normal;
+    color: black;
+    box-shadow:@cancel_box_shadow;
+    padding-left: 0px;
+  }
+  a.button:hover{
+    background-color: @qike_orange;
+    box-shadow: @cancel_box_shadow;
+  }
+  a.button:last-child{
+    border: 1px solid black;
+    border-radius:2px;
+    width: 90px;
+    height: 30px;
+    padding: 0px;
+    padding-top: 0em;
+  }
+}
+//end 未登录
+
+.right.item{
+  .text{
+    .fontSAndW;
+  }
+  .dropdown.icon{
+    color: black;
+  }
+}
+//end 已登录
+
+.fontSAndW{
+  font-size: 14px;
+  font-weight: normal;
+  color: #000;
+}
