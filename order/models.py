@@ -4,7 +4,7 @@ from participator.models import Participator
 from bike import pledgeChoices
 # Create your models here.
 class Order(models.Model):
-    number = models.CharField("编号",max_length=15,null=True,unique=True)
+    number = models.CharField("编号",max_length=16,null=True,unique=True)
     bike = models.ForeignKey(Bike,verbose_name=u'所租车辆')
     added = models.DateTimeField(u'下单时间',auto_now_add=True)
     renter = models.ForeignKey(Participator,verbose_name='租车人')

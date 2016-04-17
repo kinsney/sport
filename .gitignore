@@ -16,3 +16,4 @@ Thumbs.db
 /static/
 .*
 /node_modules
+sport/settings.py
