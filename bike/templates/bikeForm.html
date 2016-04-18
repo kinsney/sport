@@ -1,4 +1,5 @@
 {% load static from staticfiles %}
+<link rel="stylesheet" type="text/css" href="{% static "css/bikeForm.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-datetimepicker.min.css" %}">
 <form id="timeselect" class="" action="{% url "bikeSearch" %}" method="POST">
       {% csrf_token %}
