@@ -1,6 +1,16 @@
-#FecthBikeDiv{
+@import "import/fundamental";
+#timeselect{
   .ui.basic.label{
-    border-top-left-radius: 2px;
-    border-bottom-left-radius: 2px;
+    .borderRadiusSet(@TR:0px;@BR:0px);
+  }
+  #starttimecal,#endtimecal{
+    .borderRadiusSet(@TL:0px;@BL:0px);
+  }
+  #starttimecal:focus,#endtimecal:focus{
+    border-color: @qike_orange;
+  }
+  #OK{
+    .borderRadiusSet();
+    .setFonts(@Size:1.28571429rem;@Color:#000;);
   }
 }

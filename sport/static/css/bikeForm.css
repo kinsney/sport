@@ -1,1 +1,1 @@
-#FecthBikeDiv .ui.basic.label{border-top-left-radius:2px;border-bottom-left-radius:2px}
+#timeselect .ui.basic.label{border-radius:2px 0 0 2px}#timeselect #endtimecal,#timeselect #starttimecal{border-radius:0 2px 2px 0}#timeselect #endtimecal:focus,#timeselect #starttimecal:focus{border-color:#ff9600}#timeselect #OK{font-size:1.28571429rem;font-weight:400;font-family:"Microsoft YaHei","微软雅黑","Microsoft JhengHei",'华文细黑',STHeiti,MingLiu;color:#000;border-radius:2px}
