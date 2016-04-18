@@ -6,6 +6,8 @@
 input[type="file"]{
     opacity: 0;
 }
+
+
 @qike_orange:#ff9600;
 @cancel_box_shadow:0px 0px 0px 0px #fff inset !important;
 
@@ -21,7 +23,7 @@ input[type="file"]{
 
 //右侧
 .right.item{
-  .fontSAndW;
+  .setFonts();
   margin-right: 0px;
   padding: 0px;
   a.button{
@@ -47,7 +49,7 @@ input[type="file"]{
 
 .right.item{
   .text{
-    .fontSAndW;
+    .setFonts();
   }
   .dropdown.icon{
     color: black;
@@ -55,23 +57,26 @@ input[type="file"]{
 }
 //end 已登录
 
-.fontSAndW{
-  font-size: 14px;
-  font-weight: normal;
-  color: #000;
+.setFonts(@Size:14px;@Weight:normal;@Family:"Microsoft YaHei","微软雅黑","Microsoft JhengHei",'华文细黑',STHeiti,MingLiu;@Color:#000){
+  font-size: @Size;
+  font-weight: @Weight;
+  font-family: @Family;
+  color: @Color;
 }
 
+
 //底部
-.footer.segment.inverted{
+div.footer.segment.inverted{
+  padding-bottom: 60px; 
   background:#fff;
-  color: #000;
+  .setFonts(@Size:12px;@Color:#484848);
   .ui.header.inverted{
-    color: #000;
+    .setFonts(@Color:#484848);
   }
-  .ui.inverted.link.list a.item{
-    color: #000;
+  .ui.inverted.link.list{
+    .setFonts(@Size:12px;@Color:#484848);
+    a.item{
+      .setFonts(@Size:12px;@Color:#484848);
+    }
   }
-  .two.wide.column{
-  }
-  // background-color: white;
 }
