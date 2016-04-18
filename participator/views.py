@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect
 from django.db.models import Q,Sum,Count
-
+from django.template.loader import render_to_string
 from message.models import IPRecord, VerificationCode
 
 from participator.models import Participator,Province,VerifyCategory,VerifyAttachment
@@ -121,19 +121,24 @@ def selfCenter(request):
 #订单处理
 def orderManage(request):
     participator = Participator.objects.of_user(request.user)
-    orders_all = Order.objects.filter(
-        Q(renter = participator)
-        |Q(bike__owner = participator)
-        )
-    for order in orders_all :
-        order.bike.photo = Photo.objects.filter(bike=order.bike)[0]
-    orders_renter = Order.objects.filter(renter = participator)
-    for order in orders_renter:
-        order.bike.photo = Photo.objects.filter(bike=order.bike)[0]
-    orders_owner = Order.objects.filter(bike__owner = participator)
-    for order in orders_owner :
-        order.bike.photo = Photo.objects.filter(bike=order.bike)[0]
     return render(request,'orderManage.html',locals())
+
+def orderDisplay(request,tab):
+    participator = Participator.objects.of_user(request.user)
+    orders = Order.objects.filter(
+            Q(renter = participator)
+            |Q(bike__owner = participator)
+            )
+    if tab == 'recent':
+        orders = orders.filter(Q(status='confirming')|Q(status='confirmed'))
+    elif tab == 'owner':
+        orders = orders.filter(bike__owner = participator)
+    elif tab == 'renter':
+        orders = orders.filter(renter = participator)
+    for order in orders :
+        order.bike.photo = Photo.objects.filter(bike=order.bike)[0]
+    html = render_to_string('orderTable.html',{'orders':orders,'participator':participator})
+    return HttpResponse(html)
 
 def myBike(request):
     participator = Participator.objects.of_user(request.user)
@@ -143,19 +148,36 @@ def myBike(request):
     if request.POST:
             pass
     return render(request,'myBike.html',locals())
+def modify(request):
+    participator = Participator.objects.of_user(request.user)
+    try :
+        if request.is_ajax():
+            nickname = request.POST['nickname']
+            participator.nickname = nickname
+            participator.save()
+            return HttpResponse(nickname)
+        if request.FILES:
+            avatar = request.FILES['avatar']
+            participator.avatar = avatar
+            participator.save()
+            return HttpResponse(status=200)
+    except :
+        return HttpResponseBadRequest()
+
 
 def beginTime(request,bikeNumber):
+
     try:
-        assert request.is_ajax()
         bike = Bike.objects.get(number = bikeNumber)
         beginTime = request.POST['beginTime']
         endTime = request.POST['endTime']
         beginTime = datetime.datetime.strptime(beginTime,'%Y-%m-%d %H:%M')
+
         bike.beginTime = beginTime
         endTime = datetime.datetime.strptime(endTime,'%Y-%m-%d %H:%M')
         bike.endTime = endTime
         bike.save()
-        return HttpResponse(status=205)
+        return HttpResponse(status=200)
     except:
         return HttpResponseBadRequest()
 
@@ -166,7 +188,7 @@ def eraseTime(request,bikeNumber):
         bike.beginTime = None
         bike.endTime = None
         bike.save()
-        return HttpResponse(status=205)
+        return HttpResponse(status=200)
     except:
         return HttpResponseBadRequest()
 
@@ -199,4 +221,36 @@ def verifyInfo(request):
     return render(request,'selfCenter.html',locals())
 
 
+def orderConfirm(request,orderNumber):
+    try:
+        participator = Participator.objects.of_user(request.user)
+        order = Order.objects.get(number = orderNumber)
+        assert order.bike.owner == participator
+        if  order.status == 'confirming':
+            order.set_status('confirmed')
+            return redirect(reverse('orderManage'))
+        if order.status == 'confirmed':
+            order.set_status('completed')
+            return redirect(reverse('orderManage'))
+    except (Order.DoesNotExist,AssertionError) :
+        return redirect(reverse('orderManage'))
+
+
+def cancel(request,orderNumber):
+    try:
+        participator = Participator.objects.of_user(request.user)
+        order = Order.objects.get(number = orderNumber)
+        if order.status == 'confirming':
+            if order.bike.owner == participator :
+                order.set_status('rejected')
+            if order.renter == participator :
+                order.set_status('withdraw')
+        elif order.status == 'confirmed':
+            if order.bike.owner == participator:
+                order.set_status('canceled')
+            elif order.renter == participator:
+                order.set_status('withdraw_confirmed')
+        return HttpResponse(status=200)
+    except (Order.DoesNotExist,AssertionError) :
+        return HttpResponseBadRequest()
 

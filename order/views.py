@@ -53,11 +53,11 @@ def submitDone(request):
             bike = Bike.objects.get(number=number)
             starttime = datetime.datetime.strptime(starttime,'%Y-%m-%d %H:%M')
             endtime = datetime.datetime.strptime(endtime,'%Y-%m-%d %H:%M')
-            now_time = str(int(time.time()))
-            number = str(randint(0,10 ** orderNumberLength-1-len(now_time)))
+            now_time = str(int(time.time()))[-10:-1]
+            number = str(randint(0,10 ** (orderNumberLength-1-len(now_time))))
             number = now_time + number
             number = '0' * (orderNumberLength - len(number)) + number
-            order = Order.objects.create(bike=bike,renter=participator,status="confirming",number=number)
+            order = Order.objects.create(bike=bike,renter=participator,number=number)
             order.beginTime = starttime
             order.endTime = endtime
             order.rentMoney = rentMoney

@@ -117,6 +117,7 @@ $.api = $.fn.api = function(parameters) {
 
         decode: {
           json: function(response) {
+            console.log(response)
             if(response !== undefined && typeof response == 'string') {
               try {
                response = JSON.parse(response);

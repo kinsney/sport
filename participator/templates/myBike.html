@@ -8,6 +8,7 @@
 {% endblock %}
 {% block scripts %}
 {{ block.super }}
+<script type="text/javascript" src="{% static "components/api.min.js"%}"></script>
 <script type="text/javascript" src="{% static "js/library/bootstrap-datetimepicker.min.js"%}"></script>
     <script>
             $('input.beginTime').datetimepicker({
@@ -25,9 +26,27 @@
             percent:'新旧程度{percent}%'
         }
     })
+
+    $('a.submitTime').api({
+        url:'/participator/beginTime/{number}',
+        method:'post',
+        serializeForm:true,
+        onSuccess:function(){
+            $('#timeselect').find('.label.beginTime').addClass('red')
+            $('#timeselect').find('.label.endTime').addClass('red')
+            $(this).find('i').removeClass('edit').addClass('checkmark')
+        },
+        onError:function(errorMessage, element, xhr){
+           $('#timeselect').find('.label.beginTime').addClass('red')
+            $('#timeselect').find('.label.endTime').addClass('red')
+            $(this).find('i').removeClass('edit').addClass('checkmark')
+        }
+    })
         $('a.eraseTime').on('click',function(){
+            var $this = $(this)
             var $form = $(this).closest('form')
             var url = $form.data('action')
+            $(this).addClass('loading')
             $.ajax({
                 url:url,
                 method:'POST',
@@ -37,6 +56,7 @@
                     $form.find('input.beginTime').val('')
                     $form.find('.label.endTime').removeClass('red')
                     $form.find('input.endTime').val('')
+                    $this.removeClass('loading').find('i').removeClass('erase').addClass('checkmark')
                 },
                 error:function(jqXHR,textStatus){
                     alert('fail')
@@ -185,7 +205,7 @@
                 <div class='ui card'>
                     <h4 class='ui header orange center aligned' style="margin-bottom: 0"><i class='settings icon'></i><div class='content'>设置不可租借时间<div class="sub header">(设置完时间点击确认)</div></div></h4>
                     <div class='content'>
-                        <form id="timeselect" class="ui form" data-action ="{% url "eraseTime" bike.number %}"  action="{% url "beginTime" bike.number %}" method="POST"  data-async="post">
+                        <form id="timeselect" class="ui form" data-action ="{% url "eraseTime" bike.number %}"  action="{% url "beginTime" bike.number %}" method="POST" >
                         {% csrf_token %}
                           <div id="" class="left labeled right icon input ui fluid beginTime">
                             <div class="ui beginTime {% if bike.beginTime %}red{% endif %} label">开始时间</div>
@@ -197,13 +217,13 @@
                                 <input type="text"  name="endTime" class="input ui endTime" value="{{ bike.endTime|default:''|date:"Y-m-d H:i:s" }}" readonly>
                                 <i class='calendar icon'></i>
                             </div>
-                                <button type="submit" class='ui button primary' ><i class="edit icon"></i>确认</button>
+                                <a class='ui button primary submitTime' data-number="{{ bike.number }}" ><i class="edit icon"></i>确认</a>
                                 <a  class='ui button teal eraseTime ' ><i class="erase icon"></i>清除</a>
                         </form>
                     </div>
                 </div>
                 </div>
-                <button class="button positive ui" type="submit" ><i class='icon configure'></i>修改单车</button>
+                <a class="button positive ui"><i class='icon configure'></i>修改单车</a>
                 <a  class="button negative ui"><i class="icon recycle"></i>删除单车</a>
         </div>
 

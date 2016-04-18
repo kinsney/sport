@@ -131,8 +131,8 @@ def bikeSubmit(request):
             else :
                 bike.studentDeposit = False
 
-            now_time = str(int(time.time()))
-            number = str(randint(0,10 ** bikeNumberLength-1-len(now_time)))
+            now_time = str(int(time.time()))[-10:-1]
+            number = str(randint(0,10 ** (bikeNumberLength-1-len(now_time))))
             number = now_time + number
             number = '0' * (bikeNumberLength - len(number)) + number
             bike.number = number
