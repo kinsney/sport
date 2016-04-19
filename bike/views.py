@@ -124,7 +124,6 @@ def bikeSubmit(request):
             description = request.POST['description']
             brand = Brand.objects.get(name=brand_name)
             version = Version.objects.get(name=version_name,brand=brand)
-
             address = Address.objects.create(name=address_info,longitude=longitude,latitude=latitude)
             bike = Bike.objects.create(name=name,version=version,owner=participator,address=address)
             if 'studentDeposit' in request.POST:
@@ -132,8 +131,8 @@ def bikeSubmit(request):
             else :
                 bike.studentDeposit = False
 
-            now_time = str(int(time.time()))
-            number = str(randint(0,10 ** bikeNumberLength-1-len(now_time)))
+            now_time = str(int(time.time()))[-10:-1]
+            number = str(randint(0,10 ** (bikeNumberLength-1-len(now_time))))
             number = now_time + number
             number = '0' * (bikeNumberLength - len(number)) + number
             bike.number = number

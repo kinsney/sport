@@ -156,38 +156,36 @@
         <div data-tab = 'comment' class='ui segment tab bottom attached'>
             <div class="ui comments">
                 <h4 class='ui dividing header orange'>评论</h4>
-                <div class="comment">
-                    <a href="" class="avatar">
-                        <img src="{% static "images/man.png"%}" alt="">
-                    </a>
-                    <div class="content">
-                        <a href="author">Matt</a>
-                        <div class="metadata">
-                            <span class="date">今天下午 5:42</span>
-                        </div>
-                        <div class="text">太赞了！ </div>
-                        <div class="actions">
-                            <a class="reply">Reply</a>
-                        </div>
-                    </div>
-                    <div class="comments">
-                          <div class="comment">
-                            <a href="" class="avatar">
-                                <img src="{% static "images/man.png"%}" alt="">
-                            </a>
-                            <div class="content">
-                                <a href="author">Matt</a>
-                                <div class="metadata">
-                                    <span class="date">今天下午 5:42</span>
-                                </div>
-                                <div class="text">太赞了!</div>
-                                <div class="actions">
-                                    <a class="reply">Reply</a>
+                    {% for order in orders %}
+                        {% if order.comments %}
+                            <div class="comment">
+                                <a href="" class="avatar">
+                                    <img src="{% if order.comments.0.owner.avatar %}{{ order.comments.0.owner.avatar.url }}{% else %}{% static "images/man.png" %}{% endif %}" alt="">
+                                </a>
+                                <div class="content">
+                                    <a href="author">{{ order.comments.0.owner.nickname }}</a>
+                                    <div class="metadata">
+                                        <span class="date">{{ order.comments.0.added|date:"Y-m-d H:i"}}</span>
+                                    </div>
+                                    <div class="text">{{ order.comments.0.content }}</div>
+                                    {% for comment in order.comments|slice:"1:" %}
+                                    <div class="comment">
+                                      <a href="" class="avatar image">
+                                        <img src="{% if comment.owner.avatar %}{{ comment.owner.avatar.url }}{% else %}{% static "images/man.png" %}{% endif %}" alt="">
+                                      </a>
+                                      <div class="content">
+                                            <a href="author">{{ comment.owner.nickname }}</a>
+                                            <div class="metadata">
+                                                <span class="date">{{ comment.added|date:"Y-m-d H:i"}}</span>
+                                            </div>
+                                            <div class="text">{{ comment.content }}</div>
+                                      </div>
+                                    </div>
+                                    {% endfor %}
                                 </div>
                             </div>
-                          </div>
-                    </div>
-                </div>
+                        {% endif %}
+                    {% endfor %}
             </div>
         </div>
         </div>
@@ -243,7 +241,7 @@
                       <img src="{% static "images/man.png"%}">
                     </div>
                     <div class="content">
-                      <div class="header">{{ participator.nickname }}</div>
+                      <div class="header">{{ bike.owner.nickname }}</div>
                       <div class="meta">
                         <a>车主</a>
                       </div>

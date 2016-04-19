@@ -9,6 +9,7 @@
 
 {% block scripts %}
 {{ block.super }}
+<script type="text/javascript" src="{% static "components/state.min.js" %}"></script>
 <script type="text/javascript" src="{% static "components/accordion.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/library/bootstrap-datetimepicker.min.js"%}"></script>
 <script src="http://api.map.baidu.com/api?v=2.0&ak=YOOj78k6VSa1CzmQXrKS9gUm"></script>
@@ -45,7 +46,6 @@
         var pt = this.getPosition()
         var hoverMarker = new BMap.Marker(pt,{icon:hoverIcon})
         hoverMarker.number = this.number
-        console.log(hoverMarker.number)
         $('.bikes .card').not('#'+hoverMarker.number).hide()
         map.removeOverlay(this)
         map.addOverlay(hoverMarker);
@@ -112,18 +112,18 @@
                 refresh()
             }
         })
-
+        $('.buttons .button').on('click',function(){
+            var name= $(this).data('name')
+            $(this).addClass('active').siblings().removeClass('active')
+            $('input[name="deposit"]').val(name)
+            refresh()
+        })
         $('.bike.dropdown').dropdown({
             onChange:function(value){
                 refresh()
             }
         })
 
-        $('.deposit.dropdown').dropdown({
-            onChange:function(value){
-                refresh()
-            }
-        })
 
         $('.height.dropdown').dropdown({
             onChange:function(value){
@@ -153,7 +153,7 @@
                 {
                     "latitude":{{bike.address.latitude | escapejs}},
                     "longitude":{{bike.address.longitude | escapejs}},
-                    "number":{{bike.number|escapejs}}
+                    "number":{{bike.number}}
                 },
             {% endfor %}
         ]
@@ -224,16 +224,13 @@
                                 </div>
                             </div>
                             <div class="eight wide column">
-                                <div class='ui dropdown labeled icon button fluid deposit'>
-                                    <input type="hidden" name="deposit">
-                                    <i class="icon filter"></i>
                                     <span class='text'>学生租客是否免租金</span>
-                                    <div class='menu'>
-                                        <div class='item' data-value="">全部</div>
-                                        <div class='item' data-value="True">是</div>
-                                        <div class='item' data-value="False">否</div>
+                                    <div class="ui buttons">
+                                        <div class="ui button" data-name="True"><i class="checkmark icon"></i>是</div>
+                                        <div class="ui button" data-name="False"><i class="checkmark icon"></i>否</div>
+                                        <div class="ui button active" data-name=""><i class="checkmark icon"></i>全部</div>
+                                        <input type="hidden" name="deposit" value="">
                                     </div>
-                                </div>
                             </div>
                         </div>
                         <div class="row">

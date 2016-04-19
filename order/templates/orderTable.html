@@ -1,0 +1,98 @@
+{% load static from staticfiles %}
+{% load tagLibrary %}
+{% for order in orders %}
+          <h4 class="header ui orange block top attached ">订单号：{{ order.number }} </h4>
+          <div class="ui attached segment bottom  ">
+            <form action="{% url "orderConfirm" order.number %}" method="post">
+              {% csrf_token %}
+            <a class="ui red ribbon label">{{ order.get_status_display }}</a><span>{{ order.bike.name }}</span>
+            <p>{{ order.bike.address }} 租金：¥{{ order.rentMoney }}</p>
+            <div class="ui items">
+              <div class="item">
+                <div class="ui small image">
+                  <img src="{{order.bike.photo.content.url }}" alt="">
+                </div>
+                <div class="content">
+                    <dl class="horizontal-list">
+                      <dt>价格：</dt><dd>¥{{ order.bike.dayRent }}/天¥{{ order.bike.hourRent }}/小时¥{{ order.bike.weekRent }}/周</dd>
+                      <dt>取车时间：</dt><dd>{{ order.beginTime|date:"Y-m-d H:i" }}</dd>
+                      <dt>还车时间：</dt><dd>{{ order.endTime|date:"Y-m-d H:i" }}</dd>
+                      <dt>选择装备：</dt><dd>{{ order.equipments|equipment }}</dd>
+                      <dt>单车数量：</dt><dd>{{ order.amount }}</dd>
+                    </dl>
+                    <dl class="horizontal-list">
+                      <dt>应付押金：</dt><dd>¥{{ order.deposit }}</dd>
+                      <dt>抵押证件：</dt><dd>{{ order.get_pledge_display }}</dd>
+                      {% ifequal order.renter participator %}<dt>车主姓名：</dt><dd>{{ order.bike.owner.nickname }}</dd>{% else %}<dt>租客姓名：</dt><dd>{{ order.renter.nickname }}</dd>{% endifequal %}
+                      {% ifequal order.renter participator %}<dt>车主手机：</dt><dd>{{ order.bike.owner.user.username }}</dd>{% else %}<dt>车主手机：</dt><dd>{{ order.renter.user.username }}</dd>{% endifequal %}
+                      <dt>预定时间：</dt><dd>{{ order.added|date:"Y-m-d H:i" }}</dd>
+                    </dl>
+                </div>
+              </div>
+            </div>
+            <div class="clearfix">
+              {% ifequal order.bike.owner participator %}
+                {% ifequal order.status 'confirming'%}<button class="ui right floated button orange" type="submit">确认订单</button>{% endifequal %}
+                {% ifequal order.status 'confirmed'%}<button class="ui right floated button orange" type="submit">确认收车</button>{% endifequal %}
+                {% if order.status == 'confirming' or order.status == 'confirmed' %}<div class="ui right floated button orange cancel" data-ordernumber="{{ order.number }}">取消订单</div>{% endif %}
+              {% else %}
+                {% if order.status == 'confirming' or order.status == 'confirmed' %}<div class="ui right floated button orange cancel" data-ordernumber="{{ order.number }}">撤回订单</div>{% endif %}
+              {% endifequal %}
+            </div>
+          </form>
+          {% ifequal order.status 'completed' %}
+            <div class='ui comments'>
+              {% if order.comments %}
+              <h4 class="ui dividing header orange">评论</h4>
+                <div class="comment">
+                  <a href="" class="avatar image">
+                    <img src="{% if order.comments.0.owner.avatar %}{{ order.comments.0.owner.avatar.url }}{% else %}{% static "images/man.png" %}{% endif %}" alt="">
+                  </a>
+                  <div class="content">
+                        <a href="author">{{ order.comments.0.owner.nickname }}</a>
+                        <div class="metadata">
+                            <span class="date">{{ order.comments.0.added|date:"Y-m-d H:i"}}</span>
+                        </div>
+                        <div class="text">{{ order.comments.0.content }}</div>
+                        <div class="actions">
+                            <a class="reply">回复</a>
+                        </div>
+                        {% for comment in order.comments|slice:"1:" %}
+                            <div class="comment">
+                              <a href="" class="avatar image">
+                                <img src="{% if comment.owner.avatar %}{{ comment.owner.avatar.url }}{% else %}{% static "images/man.png" %}{% endif %}" alt="">
+                              </a>
+                              <div class="content">
+                                    <a href="author">{{ comment.owner.nickname }}</a>
+                                    <div class="metadata">
+                                        <span class="date">{{ comment.added|date:"Y-m-d H:i"}}</span>
+                                    </div>
+                                    <div class="text">{{ comment.content }}</div>
+                                    <div class="actions">
+                                        <a class="reply">回复</a>
+                                    </div>
+                              </div>
+                            </div>
+                        {% endfor %}
+                  </div>
+                </div>
+                <form class="ui reply form" action="{% url "orderComment" order.number %}" method="post" style="display: none!important">
+                  {% csrf_token %}
+                  <div class="field">
+                    <textarea name="content"></textarea>
+                  </div>
+                  <a class="ui blue labeled submit icon button" data-ordernumber="{{ order.number }}"><i class="icon edit"></i> 添加回复 </a>
+                </form>
+              {% elif participator == order.renter %}
+                <form class="ui reply form" action="{% url "orderComment" order.number %}" method="post">
+                  {% csrf_token %}
+                  <div class="field">
+                    <textarea name="content"></textarea>
+                  </div>
+                  <a class="ui blue labeled submit icon button" data-ordernumber="{{ order.number }}"><i class="icon edit"></i> 添加回复 </a>
+                </form>
+              {% endif %}
+            </div>
+            {% endifequal %}
+          </div>
+{% endfor %}

@@ -1,6 +1,6 @@
 from django.shortcuts import render,redirect
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, Http404, HttpResponseNotFound,QueryDict
-from .models import Order
+from .models import Order,Comments
 from bike.models import Bike,Photo
 from participator.models import Participator
 from django.core.urlresolvers import reverse, reverse_lazy
@@ -18,6 +18,9 @@ def overbooking(request,bikeNumber,starttime,endtime):
     equipments = bike.equipment.split(',')
     starttime = datetime.datetime.strptime(starttime,'%Y-%m-%d %H:%M')
     endtime = datetime.datetime.strptime(endtime,'%Y-%m-%d %H:%M')
+    orders = Order.objects.filter(bike=bike)
+    for order in orders:
+        order.comments = Comments.objects.filter(order = order)
     return render(request,'overbooking.html',locals())
 
 def orderSubmit(request,bikeNumber):
@@ -27,14 +30,18 @@ def orderSubmit(request,bikeNumber):
     photo = Photo.objects.filter(bike=bike)[0]
     bike.photo = photo
     if request.POST:
-        starttime = request.POST["starttime"]
-        endtime = request.POST["endtime"]
-        starttime_object = datetime.datetime.strptime(starttime,'%Y-%m-%d %H:%M')
-        endtime_object = datetime.datetime.strptime(endtime,'%Y-%m-%d %H:%M')
-        week = int(request.POST['week'])
-        day = int(request.POST['day'])
-        hour = int(request.POST['hour'])
-        rentMoney = bike.dayRent*day + bike.hourRent*hour+bike.weekRent*week
+        try :
+            assert bike.owner != participator
+            starttime = request.POST["starttime"]
+            endtime = request.POST["endtime"]
+            starttime_object = datetime.datetime.strptime(starttime,'%Y-%m-%d %H:%M')
+            endtime_object = datetime.datetime.strptime(endtime,'%Y-%m-%d %H:%M')
+            week = int(request.POST['week'])
+            day = int(request.POST['day'])
+            hour = int(request.POST['hour'])
+            rentMoney = bike.dayRent*day + bike.hourRent*hour+bike.weekRent*week
+        except:
+            HttpResponseBadRequest()
     return render(request,'orderSubmit.html',locals())
 
 def submitDone(request):
@@ -53,17 +60,18 @@ def submitDone(request):
             bike = Bike.objects.get(number=number)
             starttime = datetime.datetime.strptime(starttime,'%Y-%m-%d %H:%M')
             endtime = datetime.datetime.strptime(endtime,'%Y-%m-%d %H:%M')
-            now_time = str(int(time.time()))
-            number = str(randint(0,10 ** orderNumberLength-1-len(now_time)))
+            now_time = str(int(time.time()))[-10:-1]
+            number = str(randint(0,10 ** (orderNumberLength-1-len(now_time))))
             number = now_time + number
             number = '0' * (orderNumberLength - len(number)) + number
-            order = Order.objects.create(bike=bike,renter=participator,status="confirming",number=number)
+            order = Order.objects.create(bike=bike,renter=participator,number=number)
             order.beginTime = starttime
             order.endTime = endtime
             order.rentMoney = rentMoney
             order.deposit = deposit
             order.pledge = pledge
             order.equipments = equipments
+            order.amount = amount
             order.save()
         else :
             return HttpResponseBadRequest()
