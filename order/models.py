@@ -6,7 +6,7 @@ from datetime import date, datetime
 from django.utils import timezone
 # Create your models here.
 class Order(models.Model):
-    number = models.CharField("编号",max_length=15,null=True,unique=True)
+    number = models.CharField("编号",max_length=16,null=True,unique=True)
     bike = models.ForeignKey(Bike,verbose_name=u'所租车辆')
     amount = models.IntegerField("单车数量",default=1)
     added = models.DateTimeField(u'下单时间',auto_now_add=True)
@@ -26,13 +26,12 @@ class Order(models.Model):
         ('withdraw_confirmed','租客已违约'),
         ),default='confirming')
     status_modified = models.DateTimeField(u'状态修改时间',auto_now_add=True,null=True)
-    renterComment = models.TextField(u'租车人评价',null=True,blank=True)
+
     ScoreOnRenter = models.PositiveSmallIntegerField(u'租车人得分',choices=((1,u'一分'),
         (2,u'两分'),
         (3,u'三分'),
         (4,u'四分'),
         (5,u'五分')),null=True,blank=True)
-    ownerComment = models.TextField(u'车主评价',null=True,blank=True)
     ScoreOnOwner = models.PositiveSmallIntegerField(u'车主得分',choices=((1,u'一分'),
         (2,u'两分'),
         (3,u'三分'),
@@ -51,3 +50,15 @@ class Order(models.Model):
         self.status = status
         self.status_modified = timezone.now()
         self.save()
+
+class Comments(models.Model):
+    order = models.ForeignKey(Order,verbose_name='所属订单')
+    owner = models.ForeignKey(Participator,verbose_name='所属人')
+    content = models.TextField('内容',null=True,blank=True)
+    added = models.DateTimeField('添加时间',auto_now_add = True)
+    class Meta:
+        verbose_name = u'评论'
+        verbose_name_plural = u'评论'
+        ordering = ('added', 'pk')
+    def __str__(self):
+        return self.content

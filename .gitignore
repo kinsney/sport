@@ -8,4 +8,3 @@ django_wsgi.py
 /logs/*
 /node_modules
 /sport/settings.py
-

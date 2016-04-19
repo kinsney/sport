@@ -1,0 +1,16 @@
+@import "import/fundamental";
+#timeselect{
+  .ui.basic.label{
+    .borderRadiusSet(@TR:0px;@BR:0px);
+  }
+  #starttimecal,#endtimecal{
+    .borderRadiusSet(@TL:0px;@BL:0px);
+  }
+  #starttimecal:focus,#endtimecal:focus{
+    border-color: @qike_orange;
+  }
+  #OK{
+    .borderRadiusSet();
+    .setFonts(@Size:1.28571429rem;@Color:#000;);
+  }
+}

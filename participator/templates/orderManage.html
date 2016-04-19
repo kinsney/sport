@@ -3,9 +3,11 @@
 {% load tagLibrary %}
 {% block scripts %}
 {{ block.super }}
+<script src="{% static "components/state.min.js"%}"></script>
 <script src="{% static "components/tab.min.js"%}"></script>
-<script src="{% static "components/api.js"%}"></script>
+<script src="{% static "components/api.min.js"%}"></script>
 <script>
+var currentTab;
   $('.dynamic.menu .item').tab({
     apiSettings: {
       loadingDuration: 300,
@@ -20,7 +22,8 @@
         csrfmiddlewaretoken:$('input[name="csrfmiddlewaretoken"]').val()
       }
     },
-    onLoad:function(){
+    onLoad:function(tabPath){
+         currentTab = tabPath
          $('.cancel').api({
           url:'/participator/cancel/{ordernumber}',
           method:'post',
@@ -28,15 +31,39 @@
             csrfmiddlewaretoken:$('input[name="csrfmiddlewaretoken"]').val()
           },
           onSuccess:function(message){
-            $('.dynamic.menu .item').tab('change tab','recent')
+            $('.dynamic.menu .item').tab('change tab',currentTab)
           },
           onError:function(message){
-              $('.dynamic.menu .item').tab('change tab','recent')
+              $('.dynamic.menu .item').tab('change tab',currentTab)
           }
+      })
+       $('.reply .submit.button').api({
+          url:'/participator/orderComment/{ordernumber}',
+          method:'post',
+          serializeForm:true,
+          onSuccess:function(message){
+              $('.dynamic.menu .item').tab('change tab',currentTab)
+          },
+          onError:function(message){
+              $('.dynamic.menu .item').tab('change tab',currentTab)
+          }
+      })
+      $('.actions a.reply').state({
+            text:{
+                    inactive:'回复',
+                    active:'收起回复',
+                },
+        onActivate:function(e){
+                $(this).closest('.comments').find('form.reply').slideDown()
+            },
+        onDeactivate:function(e){
+          $(this).closest('.comments').find('form.reply').slideUp()
+        }
       })
     }
   })
   $('.dynamic.menu .item').tab('change tab','recent')
+
 </script>
 
 {% endblock %}

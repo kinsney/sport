@@ -1,20 +1,22 @@
-from django.shortcuts import render
+from django.shortcuts import render,render_to_response,get_object_or_404
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, Http404, HttpResponseNotFound
 from django.contrib.auth import authenticate, login as do_login, logout as do_logout
 from django.core.urlresolvers import reverse, reverse_lazy
+from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect
 from django.db.models import Q,Sum,Count
 from django.template.loader import render_to_string
 from message.models import IPRecord, VerificationCode
-
+from order.models import Comments
 from participator.models import Participator,Province,VerifyCategory,VerifyAttachment
 from order.models import Order
 from bike.models import Bike,Photo
 from participator.forms import verifyForm
 import datetime
 import logging
+from django.utils import timezone
 logger = logging.getLogger("django")
 # Create your views here.
 #
@@ -121,6 +123,8 @@ def selfCenter(request):
 #订单处理
 def orderManage(request):
     participator = Participator.objects.of_user(request.user)
+    month = datetime.date.today().month
+    year = datetime.date.today().year
     return render(request,'orderManage.html',locals())
 
 def orderDisplay(request,tab):
@@ -137,8 +141,8 @@ def orderDisplay(request,tab):
         orders = orders.filter(renter = participator)
     for order in orders :
         order.bike.photo = Photo.objects.filter(bike=order.bike)[0]
-    html = render_to_string('orderTable.html',{'orders':orders,'participator':participator})
-    return HttpResponse(html)
+        order.comments = Comments.objects.filter(order = order)
+    return render_to_response('orderTable.html',{'orders':orders,'participator':participator},context_instance = RequestContext(request))
 
 def myBike(request):
     participator = Participator.objects.of_user(request.user)
@@ -160,7 +164,7 @@ def modify(request):
             avatar = request.FILES['avatar']
             participator.avatar = avatar
             participator.save()
-            return HttpResponse(status=200)
+            return redirect(reverse('selfCenter'))
     except :
         return HttpResponseBadRequest()
 
@@ -254,3 +258,12 @@ def cancel(request,orderNumber):
     except (Order.DoesNotExist,AssertionError) :
         return HttpResponseBadRequest()
 
+def orderComment(request,orderNumber):
+    try:
+        content = request.POST['content']
+        participator = Participator.objects.of_user(request.user)
+        order = Order.objects.get(number = orderNumber)
+        comment = Comments.objects.create(owner=participator,content=content,order =order)
+        return HttpResponse(status=200)
+    except:
+        return HttpResponseBadRequest()
