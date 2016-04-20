@@ -238,7 +238,7 @@
             <div class='ui segment'>
                 <div class="ui card">
                     <div class="image">
-                      <img src="{% static "images/man.png"%}">
+                      <img {% if bike.owner.avatar %}src="{{ bike.owner.avatar.url }}"{% else %}src="{% static "images/man.png"%}" {% endif %}>
                     </div>
                     <div class="content">
                       <div class="header">{{ bike.owner.nickname }}</div>
@@ -248,7 +248,7 @@
                     </div>
                     <div class="extra content">
                       <span class="right floated">2013年加入 </span>
-                      <div class='ui star rating readonly' data-rating="{{ participator.level }}"></div>
+                      <div class='ui star rating readonly' data-rating="{{ bike.owner.level }}"></div>
                     </div>
                     <div class='extra content'>
                             <div class="mini ui statistic">

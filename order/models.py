@@ -17,6 +17,8 @@ class Order(models.Model):
     deposit = models.IntegerField("押金",null=True)
     pledge = models.CharField("抵押证件",null=True,max_length=10,choices=pledgeChoices)
     equipments = models.CharField(u'提供装备',max_length=100,blank=True,null=True)
+    rejectReason = models.CharField('车主拒绝理由',max_length=100,blank=True,null=True)
+    withdrawReason = models.CharField('租客撤销理由',max_length=100,blank=True,null=True)
     status = models.CharField(u'订单状态',max_length=20,choices=(('completed','已完成'),
         ('confirming','待确认'),
         ('confirmed','已确认'),

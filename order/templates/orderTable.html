@@ -24,7 +24,7 @@
                       <dt>应付押金：</dt><dd>¥{{ order.deposit }}</dd>
                       <dt>抵押证件：</dt><dd>{{ order.get_pledge_display }}</dd>
                       {% ifequal order.renter participator %}<dt>车主姓名：</dt><dd>{{ order.bike.owner.nickname }}</dd>{% else %}<dt>租客姓名：</dt><dd>{{ order.renter.nickname }}</dd>{% endifequal %}
-                      {% ifequal order.renter participator %}<dt>车主手机：</dt><dd>{{ order.bike.owner.user.username }}</dd>{% else %}<dt>车主手机：</dt><dd>{{ order.renter.user.username }}</dd>{% endifequal %}
+                      {% ifequal order.renter participator %}<dt>车主手机：</dt><dd>{{ order.bike.owner.user.username }}</dd>{% else %}<dt>租客手机：</dt><dd>{{ order.renter.user.username }}</dd>{% endifequal %}
                       <dt>预定时间：</dt><dd>{{ order.added|date:"Y-m-d H:i" }}</dd>
                     </dl>
                 </div>
@@ -34,9 +34,13 @@
               {% ifequal order.bike.owner participator %}
                 {% ifequal order.status 'confirming'%}<button class="ui right floated button orange" type="submit">确认订单</button>{% endifequal %}
                 {% ifequal order.status 'confirmed'%}<button class="ui right floated button orange" type="submit">确认收车</button>{% endifequal %}
-                {% if order.status == 'confirming' or order.status == 'confirmed' %}<div class="ui right floated button orange cancel" data-ordernumber="{{ order.number }}">取消订单</div>{% endif %}
+                {% if order.status == 'confirming' or order.status == 'confirmed' %}
+                <div class="ui right floated button orange cancel reject" data-ordernumber="{{ order.number }}">取消订单</div>
+                {% endif %}
               {% else %}
-                {% if order.status == 'confirming' or order.status == 'confirmed' %}<div class="ui right floated button orange cancel" data-ordernumber="{{ order.number }}">撤回订单</div>{% endif %}
+                {% if order.status == 'confirming' or order.status == 'confirmed' %}
+                <div class="ui right floated button orange cancel withdraw" data-ordernumber="{{ order.number }}">撤回订单</div>
+                {% endif %}
               {% endifequal %}
             </div>
           </form>

@@ -6,16 +6,16 @@ from random import randint
 
 from django.core.exceptions import ValidationError
 from django.utils.encoding import smart_text
-
-import constance
+from message.api import send
+import constance,logging
 from message.validators import MobileValidator
-
+logger = logging.getLogger("django")
 class Message(models.Model):
     target = models.CharField(u'目标',max_length=11,validators=[MobileValidator()])
     content = models.CharField(u'内容',max_length=500)
     sentTime = models.DateTimeField(u'发送时间',auto_now_add=True)
+    template_code = models.CharField(u'短信模板',max_length=20,default="SMS_6812186")
     response = models.TextField(u'服务器响应',editable=False)
-
     def __str__(self):
         return u'%s @ %s : %s' % (self.target, self.sentTime, self.response)
 
@@ -25,7 +25,7 @@ class Message(models.Model):
         super(Message, self).clean()
 
     def save(self, *args, **kwargs):
-        # send(self)
+        send(self)
         super(Message, self).save(*args, **kwargs)
     class Meta:
         verbose_name = u'消息'
@@ -71,7 +71,6 @@ class VerificationCode(models.Model):
     added = models.DateTimeField(u'生成时间', auto_now_add=True)
     message = models.OneToOneField(Message, verbose_name=u'消息', editable=False)
     available = models.BooleanField(u'有效', default=True, editable=False)
-
     objects = VerificationCodeManager()
 
     def __str__(self):
@@ -87,9 +86,11 @@ class VerificationCode(models.Model):
             length = constance.config.VerificationCodeLength
             code = str(randint(0, 10 ** length - 1))
             code = '0' * (length - len(code)) + code
+            content = "{"+'"{0}":"{1}"'.format('number',code)+"}"
             message = Message(
                 target = self.target,
-                content = constance.config.VerificationCodeTemplate % (code,))
+                content = content,
+                template_code = 'SMS_7000038')
             message.save()
             self.code = code
             self.message =  message

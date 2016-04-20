@@ -3,6 +3,13 @@
 .container.content{
     padding:20px 0;
 }
+.clearfix{
+    &:after{
+        content:'';
+        display:table;
+        clear:both;
+    }
+}
 //
 // input[type="file"]{
 //     opacity: 0;

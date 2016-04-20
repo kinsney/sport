@@ -8,6 +8,7 @@ from bike.forms import bikeForm
 from order.models import Order
 from datetime import timedelta
 from random import randint
+from message.models import Message
 import constance
 import logging
 import time
@@ -163,9 +164,7 @@ def bikeSubmit(request):
             for i in range(1,len(request.FILES)+1):
                 content = request.FILES['photo'+str(1)]
                 photo = Photo.objects.create(content=content,bike=bike,title='缩略图'+str(i))
-
             bike.save()
-
             return redirect('/participator/mybike')
         except:
             return HttpResponseForbidden()

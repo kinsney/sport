@@ -4,10 +4,15 @@
 {% block scripts %}
 {{ block.super }}
 <script src="{% static "components/state.min.js"%}"></script>
+<script src="{% static "components/dimmer.min.js"%}"></script>
+<script src="{% static "components/modal.min.js"%}"></script>
 <script src="{% static "components/tab.min.js"%}"></script>
 <script src="{% static "components/api.min.js"%}"></script>
 <script>
 var currentTab;
+$('.ui.modal').modal({
+            blurring:true
+         })
   $('.dynamic.menu .item').tab({
     apiSettings: {
       loadingDuration: 300,
@@ -24,19 +29,26 @@ var currentTab;
     },
     onLoad:function(tabPath){
          currentTab = tabPath
-         $('.cancel').api({
-          url:'/participator/cancel/{ordernumber}',
-          method:'post',
-          data:{
-            csrfmiddlewaretoken:$('input[name="csrfmiddlewaretoken"]').val()
-          },
-          onSuccess:function(message){
-            $('.dynamic.menu .item').tab('change tab',currentTab)
-          },
-          onError:function(message){
-              $('.dynamic.menu .item').tab('change tab',currentTab)
-          }
-      })
+         $('.cancel').on('click',function(){
+          $(this).hasClass('reject')?$('.rejectReason.modal').modal('show'):$('.withdrawReason.modal').modal('show')
+          ordernumber = $(this).data('ordernumber')
+            $('.send').api({
+              url:'/participator/cancel/{ordernumber}',
+              urlData:{
+                ordernumber:ordernumber
+              },
+              method:'post',
+              serializeForm:true,
+              onSuccess:function(message){
+                $('.modal').modal('hide')
+                $('.dynamic.menu .item').tab('change tab',currentTab)
+              },
+              onError:function(message){
+                  $('.modal').modal('hide')
+                  $('.dynamic.menu .item').tab('change tab',currentTab)
+              }
+          })
+         })
        $('.reply .submit.button').api({
           url:'/participator/orderComment/{ordernumber}',
           method:'post',
@@ -129,4 +141,69 @@ var currentTab;
       <div data-tab="renter" class="ui tab">
       </div>
     </div>
+<div class="ui  modals page transition hidden ">
+    <form class="ui fullscreen modal transition hidden withdrawReason">
+    {% csrf_token %}
+      <i class="close icon"></i>
+      <div class="header">撤回订单原因</div>
+      <div class="content">
+        <div class="ui form">
+          <h4 class="ui dividing header">撤回订单原因</h4>
+          <div class="field">
+          <div class='ui search selection dropdown'>
+            <input type="hidden" class='input' name="reason">
+            <i class="dropdown icon"></i>
+            <div class="default text">选择理由</div>
+            <div class="menu">
+                <div class="item" data-value='操作失误'>操作失误</div>
+                <div class="item" data-value='蛋疼'>蛋疼</div>
+                <div class="item" data-value='信息填写错误'>信息填写错误</div>
+                <div class="item" data-value='不信任'>不信任</div>
+            </div>
+          </div>
+          </div>
+          <div class="field">
+            <label>其他：</label>
+            <textarea name="others"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <div class="ui green button send">确认</div>
+      </div>
+    </form>
+    <form class="ui fullscreen modal transition hidden rejectReason">
+    {% csrf_token %}
+      <i class="close icon"></i>
+      <div class="header">拒绝订单原因</div>
+      <div class="content">
+        <div class="ui form">
+          <h4 class="ui dividing header">拒绝订单原因</h4>
+          <div class="field">
+            <div class='ui search selection dropdown'>
+              <input type="hidden" class='input' name="reason">
+              <i class="dropdown icon"></i>
+              <div class="default text">选择理由</div>
+              <div class="menu">
+                  <div class="item" data-value='操作失误'>操作失误</div>
+                  <div class="item" data-value='蛋疼'>蛋疼</div>
+                  <div class="item" data-value='信息填写错误'>信息填写错误</div>
+                  <div class="item" data-value='不信任'>不信任</div>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label>其他：</label>
+            <textarea name="others"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <div class="ui green button send">确认</div>
+      </div>
+    </form>
+
+</div>
+
+
 {% endblock %}

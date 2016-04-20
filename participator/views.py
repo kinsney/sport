@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect
 from django.db.models import Q,Sum,Count
 from django.template.loader import render_to_string
-from message.models import IPRecord, VerificationCode
+from message.models import IPRecord, VerificationCode,Message
 from order.models import Comments
 from participator.models import Participator,Province,VerifyCategory,VerifyAttachment
 from order.models import Order
@@ -222,7 +222,7 @@ def verifyInfo(request):
         participator.save()
     except:
         return HttpResponseBadRequest(form.errors.as_json())
-    return render(request,'selfCenter.html',locals())
+    return redirect(reverse('selfCenter'))
 
 
 def orderConfirm(request,orderNumber):
@@ -232,9 +232,19 @@ def orderConfirm(request,orderNumber):
         assert order.bike.owner == participator
         if  order.status == 'confirming':
             order.set_status('confirmed')
+            content = "{"+'"{0}":"{1}"'.format('tell',order.bike.owner.user.username)+"}"
+            Message(target=order.renter.user.username,
+                content=content,
+                template_code='SMS_7220735'
+                ).save()
             return redirect(reverse('orderManage'))
         if order.status == 'confirmed':
             order.set_status('completed')
+            content = "{"+"}"
+            Message(target=order.renter.user.username,
+                content=content,
+                template_code='SMS_7225689'
+                ).save()
             return redirect(reverse('orderManage'))
     except (Order.DoesNotExist,AssertionError) :
         return redirect(reverse('orderManage'))
@@ -244,16 +254,31 @@ def cancel(request,orderNumber):
     try:
         participator = Participator.objects.of_user(request.user)
         order = Order.objects.get(number = orderNumber)
-        if order.status == 'confirming':
-            if order.bike.owner == participator :
+        reason = request.POST["reason"] or ''
+        others = request.POST["others"] or ''
+        if order.bike.owner == participator :
+            if order.status == 'confirming':
                 order.set_status('rejected')
-            if order.renter == participator :
-                order.set_status('withdraw')
-        elif order.status == 'confirmed':
-            if order.bike.owner == participator:
+            elif order.status == 'confirmed':
                 order.set_status('canceled')
-            elif order.renter == participator:
+            order.rejectReason = reason + ':' + others
+            content = "{"+'"{0}":"{1}"'.format('reason',order.rejectReason)+"}"
+            Message(target=order.renter.user.username,
+                content=content,
+                template_code='SMS_7010034'
+                ).save()
+        elif order.renter == participator :
+            if order.status == 'confirming':
+                order.set_status('withdraw')
+            elif order.status == 'confirmed':
                 order.set_status('withdraw_confirmed')
+            order.withdrawReason = reason + ':' + others
+            content = "{"+'"{0}":"{1}"'.format('oid',order.number)+',"{0}":"{1}"'.format('reason',order.withdrawReason)+"}"
+            Message(target=order.bike.owner.user.username,
+                content=content,
+                template_code='SMS_6930124'
+                ).save()
+        order.save()
         return HttpResponse(status=200)
     except (Order.DoesNotExist,AssertionError) :
         return HttpResponseBadRequest()

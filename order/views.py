@@ -4,6 +4,7 @@ from .models import Order,Comments
 from bike.models import Bike,Photo
 from participator.models import Participator
 from django.core.urlresolvers import reverse, reverse_lazy
+from message.models import Message
 # Create your views here.
 import logging
 import datetime
@@ -73,6 +74,11 @@ def submitDone(request):
             order.equipments = equipments
             order.amount = amount
             order.save()
+            content = "{"+'"{0}":"{1}"'.format('address','www.qikezuche.com/participator/orderManage')+',"{0}":"{1}"'.format('tell',order.renter.user.username)+"}"
+            Message(target=bike.owner.user.username,
+                content=content,
+                template_code='SMS_7000039'
+                ).save()
         else :
             return HttpResponseBadRequest()
     except (KeyError,AssertionError):

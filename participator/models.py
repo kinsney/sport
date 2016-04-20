@@ -58,7 +58,7 @@ class Participator(models.Model):
     )
     user = models.OneToOneField(User, verbose_name=u'用户', primary_key=True)
     nickname = models.CharField(u'昵称', max_length=16,default=u'骑客')
-    email = models.CharField(u'邮箱',max_length=30)
+    email = models.CharField(u'邮箱',max_length=30,null=True,blank=True)
     realname = models.CharField(u'真实姓名', max_length=16, blank=True)
     male = models.NullBooleanField(u'性别', choices=GENDER, help_text=u'是为男，否为女', default=None)
     PersonId = models.CharField(u'身份证号', max_length=18, validators=[IdCardValidator()], blank=True)
@@ -94,6 +94,14 @@ class Participator(models.Model):
             )
         else:
             return ''
+
+    def set_status(self,status):
+        '''设置用户状态'''
+        if self.status == status:
+            return
+        self.status = status
+        self.save()
+
     class Meta:
         verbose_name = u'扩展用户'
         verbose_name_plural = u'扩展用户'
