@@ -9,18 +9,41 @@
 {{ block.super }}
 <script type="text/javascript" src="{% static "js/library/swiper.jquery.min.js"%}"></script>
 <script type="text/javascript">
-    var mySwiper = new Swiper('.swiper-container',{
-    loop: true,
-    autoplay:5000,
-    speed:1000,
-    pagination: '#bannerpagination',
-    paginationClickable: true,
-    grabCursor : true,
-    nextButton: '.arrow-right',
-    prevButton: '.arrow-left',
-    parallax:true,
-  });
-
+  //   var mySwiper = new Swiper('.swiper-container',{
+  //   loop: true,
+  //   autoplay:5000,
+  //   speed:1000,
+  //   pagination: '#bannerpagination',
+  //   paginationClickable: true,
+  //   grabCursor : true,
+  //   nextButton: '.arrow-right',
+  //   prevButton: '.arrow-left',
+  //   parallax:true,
+  // });
+    $(document).ready(function(){
+      $('.tog_root .tog_div').hide();
+      $('.tog_root .tog_div:first-child').show();
+      setInterval("toggle_img()",5000);
+    });
+    function toggle_img(){
+      var p_index = $('.tog_root .tog_div').filter(":visible").index();
+      switch (p_index) {
+        case 0:
+          $(".tog_root .tog_div:eq(0)").fadeOut("fast");
+          $(".tog_root .tog_div:eq(1)").fadeIn("slow");
+          break;
+        case 1:
+          $(".tog_root .tog_div:eq(1)").fadeOut("fast");
+          $(".tog_root .tog_div:eq(2)").fadeIn("slow");
+          break;
+        case 2:
+          $(".tog_root .tog_div:eq(2)").fadeOut("fast");
+          $(".tog_root .tog_div:eq(0)").fadeIn("slow");
+          break;
+        default:
+        break;
+      }
+    }
 </script>
 {% endblock %}
 {% block content %}
@@ -36,6 +59,7 @@
             {% for carousel in carousels %}
                 <div class="swiper-slide" >
                     <div class="inner" style="background:url({{ carousel.image.url }}) no-repeat;height:620px;background-size: 100% 100%">
+                    <!-- <div class="inner" style="background:url({% static "images/logo.png"%}) no-repeat;height:620px;background-size: 100% 100%"> -->
                         <div class="carousel_title ui header huge"data-swiper-parallax="-500">{{ carousel.title }}</div>
                         <div class="carousel_text ui header large" data-swiper-parallax="-3500">{{ carousel.text }}</div>
                     </div>
