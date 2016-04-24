@@ -25,7 +25,7 @@ class Message(models.Model):
         super(Message, self).clean()
 
     def save(self, *args, **kwargs):
-        send(self)
+        #send(self)
         super(Message, self).save(*args, **kwargs)
     class Meta:
         verbose_name = u'消息'

@@ -105,7 +105,9 @@ def register(request):
     user.participator = Participator.objects.create(user=user,nickname=nickname)
     do_login(request, user)
     return HttpResponse(status=205)
+
 #个人中心
+@login_required
 def selfCenter(request):
     participator = Participator.objects.of_user(request.user)
     provinces = Province.objects.all()
@@ -121,6 +123,7 @@ def selfCenter(request):
     return render(request,'selfCenter.html',locals())
 
 #订单处理
+@login_required
 def orderManage(request):
     participator = Participator.objects.of_user(request.user)
     month = datetime.date.today().month
@@ -143,15 +146,16 @@ def orderDisplay(request,tab):
         order.bike.photo = Photo.objects.filter(bike=order.bike)[0]
         order.comments = Comments.objects.filter(order = order)
     return render_to_response('orderTable.html',{'orders':orders,'participator':participator},context_instance = RequestContext(request))
-
+@login_required
 def myBike(request):
     participator = Participator.objects.of_user(request.user)
-    bikes = Bike.objects.filter(owner = participator)
+    bikes = Bike.objects.filter(owner = participator).exclude(status= 'deleted')
     for bike in bikes:
         bike.photos = Photo.objects.filter(bike=bike)
     if request.POST:
             pass
     return render(request,'myBike.html',locals())
+@login_required
 def modify(request):
     participator = Participator.objects.of_user(request.user)
     try :
@@ -168,7 +172,7 @@ def modify(request):
     except :
         return HttpResponseBadRequest()
 
-
+@login_required
 def beginTime(request,bikeNumber):
 
     try:
@@ -176,7 +180,6 @@ def beginTime(request,bikeNumber):
         beginTime = request.POST['beginTime']
         endTime = request.POST['endTime']
         beginTime = datetime.datetime.strptime(beginTime,'%Y-%m-%d %H:%M')
-
         bike.beginTime = beginTime
         endTime = datetime.datetime.strptime(endTime,'%Y-%m-%d %H:%M')
         bike.endTime = endTime
@@ -184,7 +187,7 @@ def beginTime(request,bikeNumber):
         return HttpResponse(status=200)
     except:
         return HttpResponseBadRequest()
-
+@login_required
 def eraseTime(request,bikeNumber):
     try:
         assert request.is_ajax()
@@ -195,7 +198,7 @@ def eraseTime(request,bikeNumber):
         return HttpResponse(status=200)
     except:
         return HttpResponseBadRequest()
-
+@login_required
 def verifyInfo(request):
     participator = Participator.objects.of_user(request.user)
     provinces = Province.objects.all()
@@ -224,7 +227,7 @@ def verifyInfo(request):
         return HttpResponseBadRequest(form.errors.as_json())
     return redirect(reverse('selfCenter'))
 
-
+@login_required
 def orderConfirm(request,orderNumber):
     try:
         participator = Participator.objects.of_user(request.user)
@@ -249,19 +252,25 @@ def orderConfirm(request,orderNumber):
     except (Order.DoesNotExist,AssertionError) :
         return redirect(reverse('orderManage'))
 
-
+@login_required
 def cancel(request,orderNumber):
     try:
         participator = Participator.objects.of_user(request.user)
         order = Order.objects.get(number = orderNumber)
-        reason = request.POST["reason"] or ''
-        others = request.POST["others"] or ''
+        if "reason" in request.POST:
+            reason = request.POST["reason"]
+        else:
+            reason = ""
+        if "others" in request.POST:
+            others = request.POST["others"]
+        else:
+            ohters = ""
         if order.bike.owner == participator :
             if order.status == 'confirming':
                 order.set_status('rejected')
             elif order.status == 'confirmed':
                 order.set_status('canceled')
-            order.rejectReason = reason + ':' + others
+            order.rejectReason = reason + '' + others
             content = "{"+'"{0}":"{1}"'.format('reason',order.rejectReason)+"}"
             Message(target=order.renter.user.username,
                 content=content,
@@ -282,13 +291,36 @@ def cancel(request,orderNumber):
         return HttpResponse(status=200)
     except (Order.DoesNotExist,AssertionError) :
         return HttpResponseBadRequest()
-
+@login_required
 def orderComment(request,orderNumber):
     try:
         content = request.POST['content']
+        if "rating" in request.POST:
+            rating = request.POST['rating']
+        else :
+            rating = 0
         participator = Participator.objects.of_user(request.user)
         order = Order.objects.get(number = orderNumber)
+        if participator == order.bike.owner and rating:
+            order.ScoreOnRenter = int(rating)
+        elif participator == order.renter and rating:
+            order.ScoreOnOwner = int(rating)
+        order.save()
         comment = Comments.objects.create(owner=participator,content=content,order =order)
         return HttpResponse(status=200)
     except:
         return HttpResponseBadRequest()
+
+
+@login_required
+def bikeDelete(request,bikeNumber):
+    try:
+        bike = Bike.objects.get(number=bikeNumber)
+        assert bike.status == 'Renting'
+        order = Order.objects.filter(bike=bike,status__in=['confirming','confirmed'])
+        assert len(order) == 0
+        bike.status = "deleted"
+        bike.save()
+    except (KeyError, AssertionError):
+        HttpResponseBadRequest()
+    return HttpResponse(status=200)

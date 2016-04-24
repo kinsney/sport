@@ -13,15 +13,22 @@
     <script src="{% static "js/library/jquery.min.js" %}" type="text/javascript" charset="utf-8" ></script>
 </head>
 <body class="pushable">
-    <div class="pusher ui ">
+    <div class="ui vertical sidebar menu right">
+        <a href="{% url "selfCenter" %}" class='item'>个人信息</a>
+        <a href="{% url "orderManage" %}" class='item'>订单管理</a>
+        <a href="{% url "myBike" %}" class='item'>我的单车</a>
+        <a href="{% url "bikeSubmit" %}" class='item'>发布车辆</a>
+        <a href="{% url "logout"%}" class='item'>退出登录</a>
+    </div>
+    <div class="pusher">
         <div class="ui inverted  orange vertical masthead center aligned segment head">
             <div class="ui container ">
                 <div class="ui large secondary inverted menu">
-                <a href="/"class='ui image'><img class='logo' src="{% static "images/logo.png"%}" alt=""></a>
+                <a href="/" class='ui image logo'><img src="{% static "images/logo.png"%}" alt=""></a>
                 <div class="right item">
                 {% if user.is_authenticated %}
                     <div class="ui menu orange inverted">
-                        <div class="ui pointing link dropdown item ">
+                        <div class="ui pointing link dropdown item selfinfo">
                         <span class='text'>{{ user.participator.nickname }}</span>
                         <i class="dropdown icon"></i>
                             <div class="menu">
@@ -31,12 +38,15 @@
                                 <a href="{% url "logout"%}" class='item'>退出登录</a>
                             </div>
                         </div>
+                        <a class="toc item">
+                            <i class="sidebar icon"></i>
+                        </a>
                     </div>
+
                 {% else %}
-                  <a class="ui inverted button" href="#login">登录</a>
+                  <a class="ui inverted button" href="#login" style="margin-right: 5px">登录</a>
                   <a class="ui inverted button" href="#register">注册</a>
                 {% endif %}
-                  <a class="ui inverted button" href="{% url "bikeSubmit" %}">发布车辆</a>
                 </div>
           </div>
       </div>
@@ -90,11 +100,13 @@
         </div>
     </div>
 {% endblock %}
-    </div>
+</div>
         {% include "forms.html" %}
     {% block scripts %}
-
+    <script src="{% static "components/sidebar.min.js" %}"></script>
     <script src="{% static "components/transition.min.js" %}"></script>
+    <script src="{% static "components/dimmer.min.js"%}"></script>
+    <script src="{% static "components/modal.min.js"%}"></script>
     <script src="{% static "components/rating.min.js" %}"></script>
     <script src="{% static "components/progress.min.js" %}"></script>
     <script src="{% static "components/tab.min.js" %}"></script>

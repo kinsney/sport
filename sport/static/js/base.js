@@ -4,7 +4,8 @@ void function($){
     maxRating: 5
   }).filter('.readonly').rating('disable')
 
-
+    $('.ui.modal').modal()
+    if($('.toc.item').is('a'))$('.ui.sidebar').sidebar('attach events', '.toc.item');
     $dropdownItem = $('.dropdown');
     $dropdownItem.dropdown({on:'hover',allowAdditions: true})
 

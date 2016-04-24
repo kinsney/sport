@@ -56,11 +56,14 @@
                         <a href="author">{{ order.comments.0.owner.nickname }}</a>
                         <div class="metadata">
                             <span class="date">{{ order.comments.0.added|date:"Y-m-d H:i"}}</span>
+                            {% if order.ScoreOnOwner %}<span class="ui star rating readonly" data-rating="{{ order.ScoreOnOwner }}"></span>{% endif %}
                         </div>
                         <div class="text">{{ order.comments.0.content }}</div>
+                        {% if order.comments|length == 1 %}
                         <div class="actions">
                             <a class="reply">回复</a>
                         </div>
+                        {% endif %}
                         {% for comment in order.comments|slice:"1:" %}
                             <div class="comment">
                               <a href="" class="avatar image">
@@ -70,11 +73,14 @@
                                     <a href="author">{{ comment.owner.nickname }}</a>
                                     <div class="metadata">
                                         <span class="date">{{ comment.added|date:"Y-m-d H:i"}}</span>
+                                        {% if order.ScoreOnRenter and forloop.counter == 1 %}<span class="ui star rating readonly" data-rating="{{ order.ScoreOnRenter }}"></span>{% endif %}
                                     </div>
                                     <div class="text">{{ comment.content }}</div>
+                                    {% if forloop.last %}
                                     <div class="actions">
                                         <a class="reply">回复</a>
                                     </div>
+                                    {% endif %}
                               </div>
                             </div>
                         {% endfor %}
@@ -82,6 +88,7 @@
                 </div>
                 <form class="ui reply form" action="{% url "orderComment" order.number %}" method="post" style="display: none!important">
                   {% csrf_token %}
+                  {% if not order.ScoreOnRenter and participator == order.bike.owner %}评分：<div class="ui star rating"></div><input type="hidden" name="rating">{% endif %}
                   <div class="field">
                     <textarea name="content"></textarea>
                   </div>
@@ -90,6 +97,7 @@
               {% elif participator == order.renter %}
                 <form class="ui reply form" action="{% url "orderComment" order.number %}" method="post">
                   {% csrf_token %}
+                  {% if not order.ScoreOnOwner %}评分：<div class="ui star rating"></div><input type="hidden" name="rating">{% endif %}
                   <div class="field">
                     <textarea name="content"></textarea>
                   </div>

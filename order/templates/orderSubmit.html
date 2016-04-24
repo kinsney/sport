@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load tagLibrary %}
 {% load staticfiles %}
+{% load bill %}
 {% block stylesheets %}
 {{ block.super }}
 <style>
@@ -110,7 +111,7 @@ var equipments_array = ''
                     </div>
                     <div class="item">
                         <label for="" class="ui label">租期：</label>
-                        <div class="content"><div class="header">{{ week }}周{{ day }}天{{ hour }}小时</div></div>
+                        <div class="content"><div class="header">{{ week }}周{{ day }}天{{ hours }}小时</div></div>
                     </div>
                     <div class="item">
                         <label for="" class="ui label">数量</label>
@@ -163,12 +164,10 @@ var equipments_array = ''
                         <div class="item">
                             <label for="" class="ui label">本单实际租金：</label>
                             <div class="content"><div class="header">¥{{ rentMoney }}</div></div>
-                            <input type="hidden" name="rentMoney" value="{{ rentMoney }}">
                         </div>
                         <div class="item">
                             <label for="" class="ui label">应付押金：</label>
                             <div class="content"><div class="header">¥{{ bike.deposit }}</div></div>
-                            <input type="hidden" name="deposit" value="{{ bike.deposit }}">
                         </div>
                         <div class="item">
                             <label for="" class="ui label">应当面支付车主：</label>
@@ -177,7 +176,6 @@ var equipments_array = ''
                         <div class="item">
                             <label for="" class="ui label">抵押证件：</label>
                             <div class="content"><div class="header">{{ bike.get_pledge_display }}</div></div>
-                            <input type="hidden" name="pledge" value="{{bike.pledge}}">
                         </div>
                     </div>
                 </div>

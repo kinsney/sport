@@ -13,12 +13,14 @@ class Order(models.Model):
     renter = models.ForeignKey(Participator,verbose_name='租车人')
     beginTime = models.DateTimeField(u'订单开始时间',null=True)
     endTime = models.DateTimeField(u'订单结束时间',null=True)
-    rentMoney = models.IntegerField("租金",null=True)
+    rentMoney = models.DecimalField("应付租金",max_digits=6,decimal_places=2)
+    payMoney = models.DecimalField(verbose_name="实付租金",null=True,max_digits=6,decimal_places=2,default=None)
     deposit = models.IntegerField("押金",null=True)
     pledge = models.CharField("抵押证件",null=True,max_length=10,choices=pledgeChoices)
     equipments = models.CharField(u'提供装备',max_length=100,blank=True,null=True)
     rejectReason = models.CharField('车主拒绝理由',max_length=100,blank=True,null=True)
     withdrawReason = models.CharField('租客撤销理由',max_length=100,blank=True,null=True)
+    payed = models.DateTimeField('支付时间',null=True,blank=True)
     status = models.CharField(u'订单状态',max_length=20,choices=(('completed','已完成'),
         ('confirming','待确认'),
         ('confirmed','已确认'),
@@ -52,6 +54,9 @@ class Order(models.Model):
         self.status = status
         self.status_modified = timezone.now()
         self.save()
+    def get_title(self):
+        ''' 返回账单标题 '''
+        return self.bike.name + '租金'
 
 class Comments(models.Model):
     order = models.ForeignKey(Order,verbose_name='所属订单')

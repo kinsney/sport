@@ -56,7 +56,7 @@ class Address(models.Model):
     longitude = models.CharField(u'经度',max_length = 20)
     latitude = models.CharField(u'纬度',max_length = 20)
     def __str__(self):
-        bike = self.bike_set.get(address=self)
+        bike = Bike.objects.get(address=self)
         return u'%s %s' % (
                 bike.owner.school,
                 self.name

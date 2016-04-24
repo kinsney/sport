@@ -11,6 +11,7 @@
 <script type="text/javascript" src="{% static "components/api.min.js"%}"></script>
 <script type="text/javascript" src="{% static "js/library/bootstrap-datetimepicker.min.js"%}"></script>
     <script>
+
             $('input.beginTime').datetimepicker({
 
             language:'zh-CN',
@@ -63,6 +64,27 @@
                 }
             })
         })
+
+        $('a.bikeDelete').on('click',function(){
+          bikenumber = $(this).data('bikenumber')
+          $('.modal.bikeDelete').modal('show')
+            $('.confirm').api({
+              url:'/participator/bikeDelete/{bikenumber}',
+              urlData:{
+                bikenumber:bikenumber
+              },
+              method:'post',
+              data:{
+                csrfmiddlewaretoken:$('input[name="csrfmiddlewaretoken"]').val()
+              },
+              onSuccess:function(message){
+                window.location.reload()
+              },
+              onError:function(message){
+                window.location.reload()
+              }
+          })
+         })
     </script>
 {% endblock %}
 
@@ -224,9 +246,28 @@
                 </div>
                 </div>
                 <a class="button positive ui"><i class='icon configure'></i>修改单车</a>
-                <a  class="button negative ui"><i class="icon recycle"></i>删除单车</a>
+                <a  class="button negative ui bikeDelete" data-bikenumber = "{{ bike.number }}"><i class="icon recycle"></i>删除单车</a>
         </div>
 
     {% endfor %}
+        <div class="ui basic small modal bikeDelete">
+          <div class="ui icon header">
+          <i class="trash outline icon"></i>
+            删除您的爱车
+          </div>
+          <div class="image content">
+            <p>删除后无法撤销，如需要恢复请联系工作人员，您确定么?</p>
+          </div>
+          <div class="actions">
+              <div class="ui green basic inverted button cancel">
+                <i class="remove icon"></i>
+                否
+              </div>
+              <div class="ui red basic inverted button ok confirm">
+                <i class="checkmark icon"></i>
+                是
+              </div>
+          </div>
+        </div>
 </div>
 {% endblock %}

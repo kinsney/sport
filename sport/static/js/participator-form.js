@@ -8,10 +8,7 @@ void function($){
 
         $forms.on('#login #register', function (event) {
             var href = event.type
-            if ($forms.css('display') == 'none'){
-                $forms.css('display', '')
-            }
-
+            $forms.modal('show')
             $forms.find('.buttons>a').removeClass('positive').filter('[href="' + href + '"]').addClass('positive')
             $forms.find('form').css('display', 'none')
             $(href).slideDown();

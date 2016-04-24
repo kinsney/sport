@@ -9,6 +9,7 @@ from order.models import Order
 from datetime import timedelta
 from random import randint
 from message.models import Message
+from participator.views import login_required
 import constance
 import logging
 import time
@@ -93,7 +94,7 @@ def bikeSearch(request):
             map['latitude'] = bike.address.latitude
             result["bikes"].append(map)
         return render(request,'bikeSearch.html',locals())
-
+@login_required
 def bikeSubmit(request):
     participator = Participator.objects.of_user(request.user)
     provinces = Province.objects.all()

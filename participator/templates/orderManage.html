@@ -4,8 +4,6 @@
 {% block scripts %}
 {{ block.super }}
 <script src="{% static "components/state.min.js"%}"></script>
-<script src="{% static "components/dimmer.min.js"%}"></script>
-<script src="{% static "components/modal.min.js"%}"></script>
 <script src="{% static "components/tab.min.js"%}"></script>
 <script src="{% static "components/api.min.js"%}"></script>
 <script>
@@ -28,7 +26,12 @@ $('.ui.modal').modal({
       }
     },
     onLoad:function(tabPath){
-         currentTab = tabPath
+      currentTab = tabPath
+      $('.rating').rating({maxRating:5})
+      $('.rating').not('.readonly').rating({onRate:function(value){
+        $(this).parent('.reply').find('input[name="rating"]').val(value)
+      }})
+      $('.rating').filter('.readonly').rating('disable')
          $('.cancel').on('click',function(){
           $(this).hasClass('reject')?$('.rejectReason.modal').modal('show'):$('.withdrawReason.modal').modal('show')
           ordernumber = $(this).data('ordernumber')
@@ -49,29 +52,29 @@ $('.ui.modal').modal({
               }
           })
          })
-       $('.reply .submit.button').api({
-          url:'/participator/orderComment/{ordernumber}',
-          method:'post',
-          serializeForm:true,
-          onSuccess:function(message){
-              $('.dynamic.menu .item').tab('change tab',currentTab)
-          },
-          onError:function(message){
-              $('.dynamic.menu .item').tab('change tab',currentTab)
-          }
-      })
-      $('.actions a.reply').state({
-            text:{
-                    inactive:'回复',
-                    active:'收起回复',
-                },
-        onActivate:function(e){
-                $(this).closest('.comments').find('form.reply').slideDown()
+         $('.reply .submit.button').api({
+            url:'/participator/orderComment/{ordernumber}',
+            method:'post',
+            serializeForm:true,
+            onSuccess:function(message){
+                $('.dynamic.menu .item').tab('change tab',currentTab)
             },
-        onDeactivate:function(e){
-          $(this).closest('.comments').find('form.reply').slideUp()
-        }
-      })
+            onError:function(message){
+                $('.dynamic.menu .item').tab('change tab',currentTab)
+            }
+        })
+        $('.actions a.reply').state({
+              text:{
+                      inactive:'回复',
+                      active:'收起回复',
+                  },
+          onActivate:function(e){
+                  $(this).closest('.comments').find('form.reply').slideDown()
+              },
+          onDeactivate:function(e){
+            $(this).closest('.comments').find('form.reply').slideUp()
+          }
+        })
     }
   })
   $('.dynamic.menu .item').tab('change tab','recent')
@@ -202,7 +205,18 @@ $('.ui.modal').modal({
         <div class="ui green button send">确认</div>
       </div>
     </form>
-
+    <div class="ui small modal transition ratingModal">
+      <div class="header">
+        为他（她）评分
+      </div>
+      <div class="content">
+      <p>你确定这个评分吗？（不可以为0星哟）</p>
+    </div>
+    <div class="actions">
+      <div class="ui negative button">否 </div>
+      <div class="ui positive right labeled icon button confirm">是 <i class="checkmark icon"></i> </div>
+    </div>
+    </div>
 </div>
 
 
