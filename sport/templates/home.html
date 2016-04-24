@@ -4,58 +4,62 @@
 {{ block.super }}
 <link  rel="stylesheet" href="{% static "css/swiper.min.css" %}">
 <link rel="stylesheet" href="{% static "css/home.css"%}">
+
+<!-- slide -->
+<link rel="stylesheet" href="{% static "css/Nivo-slider/themes/default/default.css" %}" type="text/css" media="screen" />
+<link rel="stylesheet" href="{% static "css/Nivo-slider/themes/light/light.css" %}" type="text/css" media="screen" />
+<link rel="stylesheet" href="{% static "css/Nivo-slider/themes/dark/dark.css" %}" type="text/css" media="screen" />
+<link rel="stylesheet" href="{% static "css/Nivo-slider/themes/bar/bar.css" %}" type="text/css" media="screen" />
+<link rel="stylesheet" href="{% static "css/Nivo-slider/nivo-slider.css" %}" type="text/css" media="screen" />
+<link rel="stylesheet" href="{% static "css/Nivo-slider/style.css" %}" type="text/css" media="screen" />
+<!-- end slide -->
+
 {% endblock %}
 {% block scripts%}
 {{ block.super }}
-<script type="text/javascript" src="{% static "js/library/swiper.jquery.min.js"%}"></script>
+<!-- <script type="text/javascript" src="{% static "js/library/swiper.jquery.min.js"%}"></script> -->
+<script type="text/javascript" src="{% static "js/jquery.nivo.slider.js"%}"></script>
 <script type="text/javascript">
-  //   var mySwiper = new Swiper('.swiper-container',{
-  //   loop: true,
-  //   autoplay:5000,
-  //   speed:1000,
-  //   pagination: '#bannerpagination',
-  //   paginationClickable: true,
-  //   grabCursor : true,
-  //   nextButton: '.arrow-right',
-  //   prevButton: '.arrow-left',
-  //   parallax:true,
-  // });
-    // $(document).ready(function(){
-    //   $('.tog_root .tog_div').hide();
-    //   $('.tog_root .tog_div:first-child').show();
-    //   setInterval("toggle_img()",5000);
-    // });
-    // function toggle_img(){
-    //   var p_index = $('.tog_root .tog_div').filter(":visible").index();
-    //   switch (p_index) {
-    //     case 0:
-    //       $(".tog_root .tog_div:eq(0)").fadeOut("fast");
-    //       $(".tog_root .tog_div:eq(1)").fadeIn("slow");
-    //       break;
-    //     case 1:
-    //       $(".tog_root .tog_div:eq(1)").fadeOut("fast");
-    //       $(".tog_root .tog_div:eq(2)").fadeIn("slow");
-    //       break;
-    //     case 2:
-    //       $(".tog_root .tog_div:eq(2)").fadeOut("fast");
-    //       $(".tog_root .tog_div:eq(0)").fadeIn("slow");
-    //       break;
-    //     default:
-    //     break;
-    //   }
-    // }
+$(window).load(function() {
+    $('.nivoSlider').nivoSlider();
+});
 </script>
 {% endblock %}
 {% block content %}
 
  {% include "bikeForm.html" %}
-<div id="allbuy" class='bd'>
-      <ul class="inline-list">
-      {% for carousel in carousels%}
-        <li><img src="{{ carousel.image.url }}" alt="{{ carousel.title }}"></li>
-      {% endfor %}
-      </ul>
+<div class="ui ">
+  <div id="wrapper">
+      <div class="slider-wrapper theme-default">
+        <div class="nivoSlider">
+            {% for carousel in carousels %}
+                <a href=""><img src="{{ carousel.image.url }}" data-thumb="images/up.jpg" alt="" /></a>
+            {% endfor %}
+            <!-- <img src="{% static "images/toystory.jpg"%}" data-thumb="images/toystory.jpg" alt="" />
+            <a href=""><img src="{% static "images/up.jpg"%}" data-thumb="images/up.jpg" alt="" /></a>
+            <img src="{% static "images/walle.jpg"%}" data-thumb="images/walle.jpg" alt="" data-transition="slideInLeft"/>
+            <img src="{% static "images/nemo.jpg"%}" data-thumb="images/nemo.jpg" alt="" title="#htmlcaption" /> -->
+        </div>
+      </div>
 </div>
+
+    <a href="#" class="arrow-left"></a>
+    <a href="#" class="arrow-left"></a>
+    <!-- <div class="swiper-container swiper-container-horizontal">
+
+        <div class="swiper-wrapper">
+            {% for carousel in carousels %}
+                <div class="swiper-slide" >
+                    <div class="inner" style="background:url({{ carousel.image.url }}) no-repeat;height:620px;background-size: 100% 100%">
+                    <div class="inner" style="background:url({% static "images/logo.png"%}) no-repeat;height:620px;background-size: 100% 100%">
+                        <div class="carousel_title ui header huge"data-swiper-parallax="-500">{{ carousel.title }}</div>
+                        <div class="carousel_text ui header large" data-swiper-parallax="-3500">{{ carousel.text }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div> -->
 {% endblock %}
 {% block footer %}
 {{ block.super }}
