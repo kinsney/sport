@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from participator.validators import IdCardValidator
+
 # Create your models here.
 class Province(models.Model):
     name = models.CharField(u'名称',max_length=16, primary_key=True)
@@ -80,11 +81,12 @@ class Participator(models.Model):
         (4,'四星'),
         (5,'五星')),default=0)
     lastLogin = models.DateTimeField(u'最后一次登录时间',auto_now_add = True)
-    memo = models.TextField(u'备注', blank=True)
+    memo = models.TextField('备注', blank=True)
     objects = ParticipatorManager()
 
     def __str__(self):
         return u'%s(%s %s)' % (self.nickname, self.get_address(), self.user.username)
+
     def get_address(self):
         if self.school:
             return u'%s %s %s' % (

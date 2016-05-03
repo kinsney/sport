@@ -1,11 +1,10 @@
-from django.shortcuts import render,render_to_response,get_object_or_404
+from django.shortcuts import render,render_to_response,get_object_or_404,redirect
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, Http404, HttpResponseNotFound
 from django.contrib.auth import authenticate, login as do_login, logout as do_logout
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.shortcuts import render, redirect
 from django.db.models import Q,Sum,Count
 from django.template.loader import render_to_string
 from message.models import IPRecord, VerificationCode,Message
@@ -19,7 +18,35 @@ import logging
 from django.utils import timezone
 logger = logging.getLogger("django")
 # Create your views here.
-#
+month = datetime.date.today().month
+year = datetime.date.today().year
+
+def get_month_profit(user):
+    '''每月收益'''
+    orders = Order.objects.filter(bike__owner=user,added__month=month,added__year=year,status='completed')
+    profit= orders.aggregate(Sum('rentMoney'),Sum('payMoney'))
+    if profit["rentMoney__sum"]!=profit["payMoney__sum"] or len(orders)==0:
+        return 0
+    else :
+        return profit["payMoney__sum"]
+
+def get_ratio(user):
+    '''接单率'''
+    orders_success = Order.objects.exclude(bike__owner=user,status__in=["canceled","rejected"])
+    orders_all = Order.objects.filter(bike__owner=user)
+    if len(orders_all)>0:
+        ratio = round(len(orders_success)/len(orders_all)*100)
+    else:
+        ratio =0
+    return ratio
+
+def get_average_time(user):
+    '''平均接单时间'''
+    orders = Order.objects.filter(bike__owner=user,status__in=["completed","confirmed","withdraw_confirmed"])
+    times = orders.aggregate(Sum('receiveTime'))
+    time = times["receiveTime__sum"]//len(orders)
+    time = time-datetime.timedelta(microseconds=time.microseconds)
+    return time
 
 def login_required(view):
     def wrapped_view(request, *args, **kwargs):
@@ -126,8 +153,10 @@ def selfCenter(request):
 @login_required
 def orderManage(request):
     participator = Participator.objects.of_user(request.user)
-    month = datetime.date.today().month
-    year = datetime.date.today().year
+    profit = get_month_profit(participator)
+    ratio = get_ratio(participator)
+    successOrders = len(Order.objects.filter(bike__owner=participator,status='completed'))
+    time = get_average_time(participator)
     return render(request,'orderManage.html',locals())
 
 def orderDisplay(request,tab):
@@ -136,10 +165,12 @@ def orderDisplay(request,tab):
             Q(renter = participator)
             |Q(bike__owner = participator)
             )
+
     if tab == 'recent':
-        orders = orders.filter(Q(status='confirming')|Q(status='confirmed'))
+        orders_unpayed = orders.filter(status='confirming',renter =participator,payed__isnull=True)
+        orders = orders.filter(Q(status='confirming')|Q(status='confirmed')).filter(payed__isnull=False)|orders_unpayed
     elif tab == 'owner':
-        orders = orders.filter(bike__owner = participator)
+        orders = orders.filter(bike__owner = participator,payed__isnull= False)
     elif tab == 'renter':
         orders = orders.filter(renter = participator)
     for order in orders :
@@ -230,6 +261,7 @@ def verifyInfo(request):
 @login_required
 def orderConfirm(request,orderNumber):
     try:
+        assert request.is_ajax()
         participator = Participator.objects.of_user(request.user)
         order = Order.objects.get(number = orderNumber)
         assert order.bike.owner == participator
@@ -248,9 +280,9 @@ def orderConfirm(request,orderNumber):
                 content=content,
                 template_code='SMS_7225689'
                 ).save()
-            return redirect(reverse('orderManage'))
+            return HttpResponse(status=200)
     except (Order.DoesNotExist,AssertionError) :
-        return redirect(reverse('orderManage'))
+        return HttpResponseBadRequest()
 
 @login_required
 def cancel(request,orderNumber):
@@ -324,3 +356,5 @@ def bikeDelete(request,bikeNumber):
     except (KeyError, AssertionError):
         HttpResponseBadRequest()
     return HttpResponse(status=200)
+
+

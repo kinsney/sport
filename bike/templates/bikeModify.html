@@ -10,6 +10,7 @@
 {{ block.super }}
 <script src="{% static "components/checkbox.min.js" %}"></script>
 <script src="http://api.map.baidu.com/api?v=2.0&ak=YOOj78k6VSa1CzmQXrKS9gUm"></script>
+<!-- <script type="text/javascript" src="{% static "js/map.js" %}"></script> -->
 
 <script>
     var map = new BMap.Map("allmap");    // 创建Map实例
@@ -19,15 +20,15 @@
     // map.addControl(new BMap.MapTypeControl());   //添加地图类型控件
     map.setCurrentCity("北京");
     var top_right_navigation = new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_RIGHT, type: BMAP_NAVIGATION_CONTROL_SMALL}); //右上角，仅包含平移和缩放按钮
-        map.addControl(top_right_navigation);
-        map.addEventListener("click", function (e) {
-            map.clearOverlays();
-            var pointMarker = new BMap.Point(e.point.lng, e.point.lat);
-             // 创建标注的坐标
-            addMarker(pointMarker);
-            $('input[name="longitude"]').val(e.point.lng)
-            $('input[name="latitude"]').val(e.point.lat)
-        });
+    map.addControl(top_right_navigation);
+    map.addEventListener("click", function (e) {
+        map.clearOverlays();
+        var pointMarker = new BMap.Point(e.point.lng, e.point.lat);
+         // 创建标注的坐标
+        addMarker(pointMarker);
+        $('input[name="longitude"]').val(e.point.lng)
+        $('input[name="latitude"]').val(e.point.lat)
+    });
     var myGeo = new BMap.Geocoder()
     function addMarker(point) {
         var myIcon = new BMap.Icon("{% static "images/map.png" %}", new BMap.Size(50, 110),
@@ -38,6 +39,7 @@
         map.addOverlay(marker);
         marker.enableDragging();
     }
+    addMarker(new BMap.Point({{bike.address.longitude}},{{bike.address.latitude}}))
 
     var university_data = {
       {% for province in provinces %}
@@ -185,15 +187,6 @@
                   }
                 ]
             },
-            photo1:{
-                identifier:'photo1',
-                rules:[
-                  {
-                    type   : 'empty',
-                    prompt : '为了出租方便，至少上传一张爱车图片吧'
-                  }
-                ]
-            },
             university:{
                 identifier:'university',
                 rules:[
@@ -279,26 +272,22 @@
         }
      })
 </script>
-<script src="{% static "js/bikeSubmit.js" %}"></script>
 {% endblock %}
 
 {% block content %}
 {{ block.super }}
     <div class='ui segment'>
-        <form action="{% url "bikeModify" %}" class='ui form bikesubmit' method="POST" enctype="multipart/form-data">
+        <form action="{% url "bikeModify" bike.number %}" class='ui form bikesubmit' method="POST" enctype="multipart/form-data">
         {% csrf_token %}
             <div class='ui required segment'>
                 <h4 class='ui header dividing orange'><i class='icon file text outline'></i>车辆信息</h4>
                 <div class='field required'>
                     <label for="" class='label'>单车名称</label>
-                    <input type="text" class='ui input' name='name' placeholder="如：北邮学十全新迪卡侬5.2">
+                    <input type="text" class='ui input' name='name' value="{{ bike.name }}">
                 </div>
                 <div class='field required'>
                     <label for="" class='label'>单车数量</label>
-                    <input type="text" class='ui input' name='amount' placeholder="1" value="1">
-                </div>
-                <div class='field required'>
-                    {{ bikeTypeForm }}
+                    <input type="text" class='ui input' name='amount'  value="{{ bike.amount }}">
                 </div>
                 <div class='field required'>
                     <label for="" class='label required'>选择装备</label>
@@ -317,9 +306,9 @@
                 <div class='field required'>
                     <label for="" class='label required'>选择品牌</label>
                     <div class='ui  selection dropdown brand'>
-                        <input type="hidden" name="brand">
+                        <input type="hidden" name="brand" value="{{ bike.version.brand }}">
                         <i class="dropdown icon"></i>
-                        <div class="default text">选择品牌</div>
+                        <div class="default text">{{ bike.version.brand }}</div>
                         <div class="menu">
                         {% for brand in brands %}
                             <div class='item' data-value="{{ brand.name }}">{{ brand.name }}</div>
@@ -330,17 +319,25 @@
                 <div class='field required'>
                     <label for="" class='label required'>选择型号</label>
                     <div class='ui search selection dropdown'>
-                        <input type="hidden" class='version input' name="version">
+                        <input type="hidden" class='version input' name="version" value="{{ bike.version }}">
                         <i class="dropdown icon"></i>
-                        <div class="default version text">选择型号(先选择品牌哟)</div>
+                        <div class="default version text">{{ bike.version }}</div>
                         <div class="menu version">
+                        {% for version in bike.version.brand.version_set.all %}
+                            <div class='item' data-value="{{ version.name }}">{{ version.name }}</div>
+                        {% endfor %}
                         </div>
                     </div>
                 </div>
                 <div class='field required'>
                     <label for="" class='label required'>上传爱车美照</label>
                     <div class='five fields'>
-                    {% for i in '12345'|make_list %}
+                    {% for photo in photos %}
+                        <div class="ui image field">
+                            <i class="icon massive" style="background:url({{ photo.content.url }});"><input type="file" name="photo{{ forloop.counter }}"></i>
+                        </div>
+                    {% endfor %}
+                    {% for i in length %}
                         <div class="ui image field">
                             <i class="plus square outline icon massive" style="display: {% ifequal forloop.counter 1 %}block{% else %}none{% endifequal %}"><input type="file" name="photo{{i}}"></i>
                         </div>
@@ -349,7 +346,7 @@
                 </div>
                 <div class='field required'>
                     <label for="" class='label'>简要描述</label>
-                    <input type="text" class='ui input' name='description' placeholder="和租客一起分享爱车的特点或者有趣的故事吧！">
+                    <input type="text" class='ui input' name='description' value="{{ bike.description }}">
                 </div>
             </div>
             <div class='ui segment required field'>
@@ -358,9 +355,9 @@
                 <div class='four fields'>
                     <div class='field'>
                         <div class='ui search selection dropdown province'>
-                            <input type="hidden" name="province">
+                            <input type="hidden" name="province" value="{{ participator.school.city.province }}">
                             <i class="dropdown icon"></i>
-                            <div class="default text">选择省市</div>
+                            <div class="default text">{{ participator.school.city.province }}</div>
                             <div class="menu">
                             {% for province in provinces %}
                                 <div class='item' data-value="{{ province.name }}">{{ province.name }}</div>
@@ -370,25 +367,31 @@
                     </div>
                     <div class='field'>
                         <div class='ui search selection dropdown city'>
-                            <input type="hidden" name="city">
+                            <input type="hidden" name="city" value="{{ participator.school.city }}">
                             <i class="dropdown icon"></i>
-                            <div class="default text city">选择城市</div>
+                            <div class="default text city">{{ participator.school.city }}</div>
                             <div class="menu city">
+                            {% for city in participator.school.city.province.city_set.all %}
+                                <div class='item' data-value="{{ city.name }}">{{ city.name }}</div>
+                            {% endfor %}
                             </div>
                         </div>
                     </div>
                     <div class='field'>
                         <div class='ui search selection dropdown university'>
-                            <input type="hidden" name="university">
+                            <input type="hidden" name="university" value="{{ participator.school }}">
                             <i class="dropdown icon"></i>
-                            <div class="default text university">选择学校</div>
+                            <div class="default text university">{{ participator.school }}</div>
                             <div class="menu university">
+                            {% for school in participator.school.city.university_set.all %}
+                                <div class='item' data-value="{{ school.name }}">{{ school.name }}</div>
+                            {% endfor %}
                             </div>
                         </div>
                     </div>
                     <div class='field'>
                         <div >
-                            <input type="text" class='ui input' name="address" placeholder="详细地址如：学十公寓xxx室">
+                            <input type="text" class='ui input' name="address" value="{{ bike.address.name }}">
                         </div>
                     </div>
                 </div>
@@ -396,8 +399,8 @@
                     <label for="" class="label required">标注地图（点击地图进行标记）</label>
                     <div id="allmap">
                     </div>
-                    <input type="hidden" name='latitude'>
-                    <input type="hidden" name="longitude">
+                    <input type="hidden" name='latitude' value="{{ bike.address.latitude }}">
+                    <input type="hidden" name="longitude" value="{{ bike.address.longitude }}">
                 </div>
             </div>
             <div class='ui segment'>
@@ -406,21 +409,21 @@
                     <label for="" class='label'>价格设置</label>
                     <div class='ui right labeled input left icon fluid'>
                         <i class='icon yen'></i>
-                        <input type="text" placeholder="请填写价格" name="hourRent" data-validate="rent">
+                        <input type="text" value="{{ bike.hourRent|floatformat:"0"  }}" name="hourRent" data-validate="rent">
                         <div class='ui basic label'>/时</div>
                     </div>
                 </div>
                 <div class='field ui required'>
                     <div class='ui right labeled input left icon fluid'>
                         <i class='icon yen'></i>
-                        <input type="text" placeholder="请填写价格" name="dayRent" data-validate="rent">
+                        <input type="text" value="{{ bike.dayRent|floatformat:"0" }}" name="dayRent" data-validate="rent">
                         <div class='ui basic label'>/天</div>
                     </div>
                 </div>
                 <div class='field ui required'>
                     <div class='ui right labeled input left icon fluid'>
                         <i class='icon yen'></i>
-                        <input type="text" placeholder="请填写价格" name="weekRent" data-validate="rent">
+                        <input type="text" value="{{ bike.weekRent|floatformat:"0"  }}" name="weekRent" data-validate="rent">
                         <div class='ui basic label'>/周</div>
                     </div>
                 </div>
@@ -429,23 +432,23 @@
                 <label for="">押金金额（元）</label>
                 <div class='ui input left icon'>
                         <i class='icon yen'></i>
-                        <input type="text" placeholder="请填写价格" name="deposit">
+                        <input type="text" placeholder="请填写价格" name="deposit" value="{{ bike.deposit }}">
                 </div>
                 <div class="ui pointing label">不填写视为无押金要求（对一切租客）</div>
             </div>
             <div class="field required">
                 <label for="">学生租客是否免押金</label>
                 <div class="ui toggle checkbox studentDeposit">
-                    <input type="checkbox" name="studentDeposit" checked>
-                    <label class='label studentDeposit'>是</label>
+                    <input type="checkbox" name="studentDeposit" {% if bike.studentDeposit %}checked{% endif %}>
+                    <label class='label studentDeposit'>{{ bike.studentDeposit |yesno:"是,否"}}</label>
                 </div>
             </div>
             <div class="field required">
                 <label for="">租客是否需要抵押证件</label>
                 <div class='ui search selection dropdown'>
-                        <input type="hidden" class='input' name="pledge">
+                        <input type="hidden" class='input' name="pledge" value="{{ bike.pledge}}">
                         <i class="dropdown icon"></i>
-                        <div class="default text">选择证件</div>
+                        <div class="default text">{{ bike.pledge }}</div>
                         <div class="menu">
                             <div class="item" data-value='studentId'>学生证</div>
                             <div class="item" data-value='campusId'>校园卡</div>
@@ -459,12 +462,12 @@
                 <div class='two fields required'>
                     <div class='field ui right labeled input '>
                         <div class='ui label'><i class='wait icon'></i>最短</div>
-                        <input type="text" value="8" name="minTime">
+                        <input type="text" value="{{ minTime }}" name="minTime">
                         <div class='ui basic label'>小时</div>
                     </div>
                     <div class='field ui right labeled input '>
                         <div class='ui label'><i class='wait icon'></i>最长</div>
-                        <input type="text" value="1" name="maxTime">
+                        <input type="text" value="{{ maxTime }}" name="maxTime">
                         <div class='ui basic label'>周</div>
                     </div>
                 </div>
@@ -475,7 +478,7 @@
                     <p>租客取消订单和提前还车时间以骑客租车系统中记录的时间为准。如与租客产生争议，请在争议发生后24小时内联系客服，我们会尽最大努力维护您的正当权益。</p>
                 </div>
             </div>
-            <button type="submit" class='ui button orange submit'>确认发布</button>
+            <button type="submit" class='ui button orange submit'>确认修改</button>
         </div>
         </form>
     </div>

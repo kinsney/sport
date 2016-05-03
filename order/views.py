@@ -8,7 +8,7 @@ from message.models import Message
 from participator.views import login_required
 from django.views.decorators.csrf import csrf_exempt
 from order.api import verify_alipay_notify,get_alipay_url_params,ALIPAY_GATEWAY
-
+from participator.views import get_average_time,get_ratio
 from urllib.request import urlopen
 # Create your views here.
 import logging
@@ -39,6 +39,9 @@ def overbooking(request,bikeNumber,starttime,endtime):
     equipments = bike.equipment.split(',')
     starttime = datetime.datetime.strptime(starttime,'%Y-%m-%d %H:%M')
     endtime = datetime.datetime.strptime(endtime,'%Y-%m-%d %H:%M')
+    ratio = get_ratio(bike.owner)
+    successOrders = len(Order.objects.filter(bike__owner=bike.owner,status='completed'))
+    time = get_average_time(bike.owner)
     orders = Order.objects.filter(bike=bike)
     for order in orders:
         order.comments = Comments.objects.filter(order = order)
@@ -78,7 +81,6 @@ def submitDone(request):
             equipments = request.POST["equipments"]
             starttime_object = time.mktime(time.strptime(starttime,'%Y-%m-%d %H:%M'))
             endtime_object = time.mktime(time.strptime(endtime,'%Y-%m-%d %H:%M'))
-            logger.info(starttime_object)
             rentTime = get_time(starttime_object, endtime_object)
             bike = get_object_or_404(Bike,number=number)
             starttime = datetime.datetime.strptime(starttime,'%Y-%m-%d %H:%M')
@@ -98,12 +100,6 @@ def submitDone(request):
             order.save()
             param = get_alipay_url_params(request,order)
             url = ALIPAY_GATEWAY + '?' + param
-            content = "{"+'"{0}":"{1}"'.format('address','www.qikezuche.com/participator/orderManage')+',"{0}":"{1}"'.format('tell',order.renter.user.username)+"}"
-            Message(target=bike.owner.user.username,
-                content=content,
-                template_code='SMS_7000039'
-                ).save()
-            logger.info(url)
             return redirect(url)
         else :
             return HttpResponseBadRequest()
@@ -113,6 +109,5 @@ def submitDone(request):
 
 @csrf_exempt
 def payed(request):
-    logger.debug(request.POST)
     verify_alipay_notify(request.POST)
     return HttpResponse('success')

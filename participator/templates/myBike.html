@@ -245,7 +245,7 @@
                     </div>
                 </div>
                 </div>
-                <a class="button positive ui"><i class='icon configure'></i>修改单车</a>
+                <a class="button positive ui" href="{% url "bikeModify" bike.number %}"><i class='icon configure'></i>修改单车</a>
                 <a  class="button negative ui bikeDelete" data-bikenumber = "{{ bike.number }}"><i class="icon recycle"></i>删除单车</a>
         </div>
 

@@ -1,5 +1,6 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,get_object_or_404
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, Http404, HttpResponseNotFound,QueryDict
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.template.loader import render_to_string
 from django.db.models import Q,Sum,Count
 from bike.models import Bike,Brand,Version,Address,Photo,Category
@@ -85,14 +86,8 @@ def bikeSearch(request):
 
         return HttpResponse(json.dumps(result))
     else:
-        result["bikes"]=[]
         for bike in bikes:
             bike.photo = Photo.objects.filter(bike=bike)[0]
-            map = {}
-            map['number'] = bike.number
-            map['longitude'] = bike.address.longitude
-            map['latitude'] = bike.address.latitude
-            result["bikes"].append(map)
         return render(request,'bikeSearch.html',locals())
 @login_required
 def bikeSubmit(request):
@@ -122,7 +117,6 @@ def bikeSubmit(request):
             deposit =request.POST['deposit']
             minTime = request.POST['minTime']
             maxTime = request.POST['maxTime']
-            howManyBikes = request.POST['amount']
             description = request.POST['description']
             brand = Brand.objects.get(name=brand_name)
             version = Version.objects.get(name=version_name,brand=brand)
@@ -148,7 +142,6 @@ def bikeSubmit(request):
             bike.description = description
             bike.suitHeight = suitHeight
             bike.howOld = howOld
-            bike.amount = howManyBikes
             bike.pledge = pledge
             equipment = ','.join(equipment)
             bike.equipment = equipment
@@ -170,3 +163,68 @@ def bikeSubmit(request):
         except:
             return HttpResponseForbidden()
     return render(request,'bikeSubmit.html',locals())
+
+@login_required
+def bikeModify(request,bikeNumber):
+    try:
+        bike = get_object_or_404(Bike,number=bikeNumber)
+        participator = Participator.objects.of_user(request.user)
+        provinces = Province.objects.all()
+        brands = Brand.objects.all()
+        assert bike.owner == participator
+        photos = Photo.objects.filter(bike=bike)
+        length = [1,2,3,4,5][len(photos):]
+        maxTime = round(bike.maxDuration.days/7)
+        minTime = round(bike.minDuration.seconds/3600)
+        equipments = bike.equipment.split(',')
+        if request.POST:
+            bike.name = request.POST["name"]
+            bike.amount = request.POST["amount"]
+            version_name = request.POST['version']
+            brand_name = request.POST['brand']
+            pledge = request.POST['pledge']
+            address_info = request.POST['address']
+            longitude = request.POST['longitude']
+            latitude = request.POST['latitude']
+            university = request.POST['university']
+            hourRent = request.POST['hourRent']
+            dayRent = request.POST['dayRent']
+            weekRent = request.POST['weekRent']
+            deposit =request.POST['deposit']
+            minTime = request.POST['minTime']
+            maxTime = request.POST['maxTime']
+            description = request.POST['description']
+            brand = Brand.objects.get(name=brand_name)
+            version = Version.objects.get(name=version_name,brand=brand)
+            bike.address.name = address_info
+            bike.address.longitude = longitude
+            bike.address.latitude = latitude
+            bike.version = version
+            bike.hourRent =  hourRent
+            bike.dayRent = dayRent
+            bike.weekRent =weekRent
+            bike.deposit = deposit or 0
+            bike.description = description
+            bike.pledge = pledge
+            bike.maxDuration = timedelta(weeks=int(maxTime))
+            bike.minDuration = timedelta(hours=int(minTime))
+            if 'studentDeposit' in request.POST:
+                bike.studentDeposit = True
+            else :
+                bike.studentDeposit = False
+            for i in range(1,len(request.FILES)+1):
+                content = request.FILES['photo'+str(1)]
+                try :
+                    photo = Photo.objects.get(bike=bike,title='缩略图'+str(i))
+                    logger.info(photo)
+                    photo.content = content
+                    photo.save()
+                except :
+                    photo = Photo.objects.create(content=content,bike=bike,title='缩略图'+str(i))
+            bike.save()
+            return redirect(reverse('myBike'))
+        else:
+            return render(request,'bikeModify.html',locals())
+    except:
+        return redirect(reverse('myBike'))
+

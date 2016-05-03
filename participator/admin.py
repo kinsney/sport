@@ -59,7 +59,6 @@ class CityInline(admin.TabularInline):
     model = City
     extra = 0
     sortable_field_name = 'order'
-    exclude = ('agents',)
 
 @admin.register(Province)
 class ProvinceAdmin(admin.ModelAdmin):

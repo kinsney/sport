@@ -6,81 +6,7 @@
 <script src="{% static "components/state.min.js"%}"></script>
 <script src="{% static "components/tab.min.js"%}"></script>
 <script src="{% static "components/api.min.js"%}"></script>
-<script>
-var currentTab;
-$('.ui.modal').modal({
-            blurring:true
-         })
-  $('.dynamic.menu .item').tab({
-    apiSettings: {
-      loadingDuration: 300,
-      cache   : false,
-      context : 'parent',
-      auto    : true,
-      alwaysRefrsh:true,
-      history : false,
-      url   : '/participator/ordermanage/{$tab}',
-      method: 'post',
-      data:{
-        csrfmiddlewaretoken:$('input[name="csrfmiddlewaretoken"]').val()
-      }
-    },
-    onLoad:function(tabPath){
-      currentTab = tabPath
-      $('.rating').rating({maxRating:5})
-      $('.rating').not('.readonly').rating({onRate:function(value){
-        $(this).parent('.reply').find('input[name="rating"]').val(value)
-      }})
-      $('.rating').filter('.readonly').rating('disable')
-         $('.cancel').on('click',function(){
-          $(this).hasClass('reject')?$('.rejectReason.modal').modal('show'):$('.withdrawReason.modal').modal('show')
-          ordernumber = $(this).data('ordernumber')
-            $('.send').api({
-              url:'/participator/cancel/{ordernumber}',
-              urlData:{
-                ordernumber:ordernumber
-              },
-              method:'post',
-              serializeForm:true,
-              onSuccess:function(message){
-                $('.modal').modal('hide')
-                $('.dynamic.menu .item').tab('change tab',currentTab)
-              },
-              onError:function(message){
-                  $('.modal').modal('hide')
-                  $('.dynamic.menu .item').tab('change tab',currentTab)
-              }
-          })
-         })
-         $('.reply .submit.button').api({
-            url:'/participator/orderComment/{ordernumber}',
-            method:'post',
-            serializeForm:true,
-            onSuccess:function(message){
-                $('.dynamic.menu .item').tab('change tab',currentTab)
-            },
-            onError:function(message){
-                $('.dynamic.menu .item').tab('change tab',currentTab)
-            }
-        })
-        $('.actions a.reply').state({
-              text:{
-                      inactive:'回复',
-                      active:'收起回复',
-                  },
-          onActivate:function(e){
-                  $(this).closest('.comments').find('form.reply').slideDown()
-              },
-          onDeactivate:function(e){
-            $(this).closest('.comments').find('form.reply').slideUp()
-          }
-        })
-    }
-  })
-  $('.dynamic.menu .item').tab('change tab','recent')
-
-</script>
-
+<script src="{% static "js/orderManage.js"%}"></script>
 {% endblock %}
 
 {% block stylesheets %}
@@ -91,13 +17,13 @@ $('.ui.modal').modal({
     {% with active="orderManage" %}{{ block.super }}{% endwith %}
 {% endblock %}
 {% block main %}
-    <div class='ui segment stacked'>
+    <div class='ui segment'>
       <h4 class='ui dividing header'>我的收益</h4>
       <div class='ui grid statistics'>
         <div class='statistic  orange'>
           <div class='value'>
           <i class='yen small icon'></i>
-
+          {{ profit }}
           </div>
           <div class='label'>
             当月收益
@@ -106,7 +32,7 @@ $('.ui.modal').modal({
         <div class='statistic orange'>
           <div class='value'>
           <i class='star half empty small icon'></i>
-
+          {{ ratio }}%
           </div>
           <div class='label'>
             接单率
@@ -115,7 +41,7 @@ $('.ui.modal').modal({
         <div class='statistic  orange'>
           <div class='value'>
           <i class='thumbs outline up small icon'></i>
-            100
+            {{ successOrders }}
           </div>
           <div class='label'>
             已成交
@@ -124,13 +50,15 @@ $('.ui.modal').modal({
         <div class='statistic  orange'>
           <div class='value'>
           <i class='wait small icon'></i>
-            20:20
+            {{ time }}
           </div>
           <div class='label'>
             平分接单时间
           </div>
         </div>
       </div>
+    </div>
+    <div class="ui segment stacked">
       <div class="ui pointing secondary menu dynamic">
         {% csrf_token %}
         <a class="item active" data-tab='recent'>当前订单</a>
@@ -144,6 +72,7 @@ $('.ui.modal').modal({
       <div data-tab="renter" class="ui tab">
       </div>
     </div>
+
 <div class="ui  modals page transition hidden ">
     <form class="ui fullscreen modal transition hidden withdrawReason">
     {% csrf_token %}

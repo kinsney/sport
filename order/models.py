@@ -4,6 +4,9 @@ from participator.models import Participator
 from bike import pledgeChoices
 from datetime import date, datetime
 from django.utils import timezone
+import logging
+logger = logging.getLogger("django")
+
 # Create your models here.
 class Order(models.Model):
     number = models.CharField("编号",max_length=16,null=True,unique=True)
@@ -21,6 +24,7 @@ class Order(models.Model):
     rejectReason = models.CharField('车主拒绝理由',max_length=100,blank=True,null=True)
     withdrawReason = models.CharField('租客撤销理由',max_length=100,blank=True,null=True)
     payed = models.DateTimeField('支付时间',null=True,blank=True)
+    receiveTime = models.DurationField('接单时间',null=True,blank=True)
     status = models.CharField(u'订单状态',max_length=20,choices=(('completed','已完成'),
         ('confirming','待确认'),
         ('confirmed','已确认'),
@@ -29,8 +33,8 @@ class Order(models.Model):
         ('withdraw','租客已撤回'),
         ('withdraw_confirmed','租客已违约'),
         ),default='confirming')
-    status_modified = models.DateTimeField(u'状态修改时间',auto_now_add=True,null=True)
 
+    status_modified = models.DateTimeField(u'状态修改时间',auto_now_add=True,null=True)
     ScoreOnRenter = models.PositiveSmallIntegerField(u'租车人得分',choices=((1,u'一分'),
         (2,u'两分'),
         (3,u'三分'),
@@ -51,6 +55,9 @@ class Order(models.Model):
         '''设置订单状态'''
         if self.status == status:
             return
+        if self.status == 'confirming' and status == "confirmed":
+            self.receiveTime =timezone.now()-self.payed
+            logger.info(self.receiveTime)
         self.status = status
         self.status_modified = timezone.now()
         self.save()

@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from urllib.request import urlopen
 from urllib.parse import urlencode
 from hashlib import md5
@@ -6,6 +7,7 @@ from order.models import Order
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from datetime import datetime
+from message.models import Message
 
 __all__ = ['get_alipay_form', 'verify_alipay_notify']
 
@@ -79,11 +81,17 @@ def verify_alipay_notify(params):
         'partner': PARTNER_ID,
         'notify_id': params['notify_id']
     })
-    verify = urlopen(verify_url).read().strip()
+
+    verify = urlopen(verify_url).read().strip().decode('ascii')
     if verify != 'true':
         raise ValueError('Invalid Notify')
 
-    order = Order.objects.get(number=params['out_trade_no'].split('@')[0])
+    order = get_object_or_404(Order,number=params['out_trade_no'].split('@')[0])
     order.payed = params['gmt_payment']
-    order.rentMoney = params['total_fee']
+    order.payMoney = params['total_fee']
     order.save()
+    content = "{"+'"{0}":"{1}"'.format('address','www.qikezuche.com/participator/orderManage')+',"{0}":"{1}"'.format('tell',order.renter.user.username)+"}"
+    Message(target=order.bike.owner.user.username,
+                content=content,
+                template_code='SMS_7000039'
+                ).save()
