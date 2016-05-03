@@ -32,19 +32,17 @@ $(window).load(function() {
   <div id="wrapper">
       <div class="slider-wrapper theme-default">
         <div class="nivoSlider">
-            {% for carousel in carousels %}
-                <a href=""><img src="{{ carousel.image.url }}" data-thumb="images/up.jpg" alt="" /></a>
-            {% endfor %}
-            <!-- <img src="{% static "images/toystory.jpg"%}" data-thumb="images/toystory.jpg" alt="" />
-            <a href=""><img src="{% static "images/up.jpg"%}" data-thumb="images/up.jpg" alt="" /></a>
-            <img src="{% static "images/walle.jpg"%}" data-thumb="images/walle.jpg" alt="" data-transition="slideInLeft"/>
-            <img src="{% static "images/nemo.jpg"%}" data-thumb="images/nemo.jpg" alt="" title="#htmlcaption" /> -->
+          {% for carousel in carousels %}
+              <a href="{{ carousel.link }}"><img src="{{ carousel.image.url }}" data-thumb="images/up.jpg" alt="" /></a>
+          {% endfor %}
         </div>
       </div>
 </div>
 
+<!--
     <a href="#" class="arrow-left"></a>
     <a href="#" class="arrow-left"></a>
+  -->
     <!-- <div class="swiper-container swiper-container-horizontal">
 
         <div class="swiper-wrapper">
