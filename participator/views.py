@@ -44,8 +44,11 @@ def get_average_time(user):
     '''平均接单时间'''
     orders = Order.objects.filter(bike__owner=user,status__in=["completed","confirmed","withdraw_confirmed"])
     times = orders.aggregate(Sum('receiveTime'))
-    time = times["receiveTime__sum"]//len(orders)
-    time = time-datetime.timedelta(microseconds=time.microseconds)
+    if type(times["receiveTime__sum"]) == type(1):
+        time = times["receiveTime__sum"]/len(orders)
+        time = time-datetime.timedelta(microseconds=time.microseconds)
+    else :
+        time = datetime.timedelta(0)
     return time
 
 def login_required(view):
@@ -158,7 +161,7 @@ def orderManage(request):
     successOrders = len(Order.objects.filter(bike__owner=participator,status='completed'))
     time = get_average_time(participator)
     return render(request,'orderManage.html',locals())
-
+@login_required
 def orderDisplay(request,tab):
     participator = Participator.objects.of_user(request.user)
     orders = Order.objects.filter(
