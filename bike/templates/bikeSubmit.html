@@ -285,7 +285,7 @@
 {% block content %}
 {{ block.super }}
     <div class='ui segment'>
-        <form action="{% url "bikeModify" %}" class='ui form bikesubmit' method="POST" enctype="multipart/form-data">
+        <form action="{% url "bikeSubmit" %}" class='ui form bikesubmit' method="POST" enctype="multipart/form-data">
         {% csrf_token %}
             <div class='ui required segment'>
                 <h4 class='ui header dividing orange'><i class='icon file text outline'></i>车辆信息</h4>

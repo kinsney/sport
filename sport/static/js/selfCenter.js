@@ -20,7 +20,7 @@ void function($){
     }
 });
 
-$('[name="school"]').recSelector(university_data);
+
 $('input[name="avatar"]').on('change',function(){
   $(this).closest('form').submit()
 })
