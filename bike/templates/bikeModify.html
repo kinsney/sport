@@ -282,26 +282,7 @@
             <div class='ui required segment'>
                 <h4 class='ui header dividing orange'><i class='icon file text outline'></i>车辆信息</h4>
                 <div class='field required'>
-                    <label for="" class='label'>单车名称</label>
-                    <input type="text" class='ui input' name='name' value="{{ bike.name }}">
-                </div>
-                <div class='field required'>
-                    <label for="" class='label'>单车数量</label>
-                    <input type="text" class='ui input' name='amount'  value="{{ bike.amount }}">
-                </div>
-                <div class='field required'>
-                    <label for="" class='label required'>选择装备</label>
-                    <select name="equipment"  class='ui dropdown' multiple="">
-                        <option value="lock">车锁</option>
-                        <option value="helmet">头盔</option>
-                        <option value="glove">手套</option>
-                        <option value="phoneHolder">手机支架</option>
-                        <option value="kettleHolder">水壶支架</option>
-                        <option value="backseat">后座</option>
-                        <option value="flashlight">手电筒</option>
-                        <option value="backlight">尾灯</option>
-                        <option value="compass">指南针</option>
-                    </select>
+                    {{ bikeTypeForm }}
                 </div>
                 <div class='field required'>
                     <label for="" class='label required'>选择品牌</label>

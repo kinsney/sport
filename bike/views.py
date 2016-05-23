@@ -121,12 +121,11 @@ def bikeSubmit(request):
             brand = Brand.objects.get(name=brand_name)
             version = Version.objects.get(name=version_name,brand=brand)
             address = Address.objects.create(name=address_info,longitude=longitude,latitude=latitude)
-            bike = Bike.objects.create(name=name,version=version,owner=participator,address=address)
+            bike = Bike.objects.create(name=name,version=version,owner=participator,address=address,dayRent=dayRent,hourRent=hourRent,weekRent=weekRent)
             if 'studentDeposit' in request.POST:
                 bike.studentDeposit = True
             else :
                 bike.studentDeposit = False
-
             now_time = str(int(time.time()))[-10:-1]
             number = str(randint(0,10 ** (bikeNumberLength-1-len(now_time))))
             number = now_time + number
@@ -135,9 +134,6 @@ def bikeSubmit(request):
             bike.amount = amount
             bike.sexualFix = sexualFix
             bike.address = address
-            bike.hourRent = hourRent
-            bike.dayRent = dayRent
-            bike.weekRent =weekRent
             bike.deposit = deposit or 0
             bike.description = description
             bike.suitHeight = suitHeight
@@ -177,6 +173,14 @@ def bikeModify(request,bikeNumber):
         maxTime = round(bike.maxDuration.days/7)
         minTime = round(bike.minDuration.seconds/3600)
         equipments = bike.equipment.split(',')
+        bikeTypeForm = bikeForm(initial={
+                'name':bike.name,
+                'amount':bike.amount,
+                'suitHeight':bike.suitHeight,
+                'howOld':bike.howOld,
+                'sexualFix':bike.sexualFix,
+                'equipment':bike.equipment.split(',')
+            })
         if request.POST:
             bike.name = request.POST["name"]
             bike.amount = request.POST["amount"]
