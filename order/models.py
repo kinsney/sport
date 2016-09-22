@@ -17,23 +17,18 @@ class Order(models.Model):
     beginTime = models.DateTimeField(u'订单开始时间',null=True)
     endTime = models.DateTimeField(u'订单结束时间',null=True)
     rentMoney = models.DecimalField("应付租金",max_digits=6,decimal_places=2)
-    payMoney = models.DecimalField(verbose_name="实付租金",null=True,max_digits=6,decimal_places=2,default=None)
     deposit = models.IntegerField("押金",null=True)
     pledge = models.CharField("抵押证件",null=True,max_length=10,choices=pledgeChoices)
     equipments = models.CharField(u'提供装备',max_length=100,blank=True,null=True)
     rejectReason = models.CharField('车主拒绝理由',max_length=100,blank=True,null=True)
-    withdrawReason = models.CharField('租客撤销理由',max_length=100,blank=True,null=True)
-    payed = models.DateTimeField('支付时间',null=True,blank=True)
+    canceledReason = models.CharField('租客撤销理由',max_length=100,blank=True,null=True)
     receiveTime = models.DurationField('接单时间',null=True,blank=True)
     status = models.CharField(u'订单状态',max_length=20,choices=(('completed','已完成'),
         ('confirming','待确认'),
         ('confirmed','已确认'),
         ('rejected','车主已拒绝'),
-        ('canceled','车主已取消'),
-        ('withdraw','租客已撤回'),
-        ('withdraw_confirmed','租客已违约'),
+        ('canceled','租客已撤回'),
         ),default='confirming')
-
     status_modified = models.DateTimeField(u'状态修改时间',auto_now_add=True,null=True)
     ScoreOnRenter = models.PositiveSmallIntegerField(u'租车人得分',choices=((1,u'一分'),
         (2,u'两分'),
@@ -56,8 +51,7 @@ class Order(models.Model):
         if self.status == status:
             return
         if self.status == 'confirming' and status == "confirmed":
-            self.receiveTime =timezone.now()-self.payed
-            logger.info(self.receiveTime)
+            self.receiveTime =timezone.now()-self.status_modified
         self.status = status
         self.status_modified = timezone.now()
         self.save()

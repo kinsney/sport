@@ -13,6 +13,7 @@ from participator.models import Participator,Province,VerifyCategory,VerifyAttac
 from order.models import Order
 from bike.models import Bike,Photo
 from participator.forms import verifyForm
+import constance
 import datetime
 import logging
 from django.utils import timezone
@@ -24,11 +25,8 @@ year = datetime.date.today().year
 def get_month_profit(user):
     '''每月收益'''
     orders = Order.objects.filter(bike__owner=user,added__month=month,added__year=year,status='completed')
-    profit= orders.aggregate(Sum('rentMoney'),Sum('payMoney'))
-    if profit["rentMoney__sum"]!=profit["payMoney__sum"] or len(orders)==0:
-        return 0
-    else :
-        return profit["payMoney__sum"]
+    profit= orders.aggregate(Sum('rentMoney'))
+    return profit["rentMoney__sum"] or 0
 
 def get_ratio(user):
     '''接单率'''
@@ -42,7 +40,7 @@ def get_ratio(user):
 
 def get_average_time(user):
     '''平均接单时间'''
-    orders = Order.objects.filter(bike__owner=user,status__in=["completed","confirmed","withdraw_confirmed"])
+    orders = Order.objects.filter(bike__owner=user,status__in=["completed","confirmed"])
     times = orders.aggregate(Sum('receiveTime'))
     if type(times["receiveTime__sum"]) == type(1):
         time = times["receiveTime__sum"]/len(orders)
@@ -168,12 +166,10 @@ def orderDisplay(request,tab):
             Q(renter = participator)
             |Q(bike__owner = participator)
             )
-
     if tab == 'recent':
-        orders_unpayed = orders.filter(status='confirming',renter =participator,payed__isnull=True)
-        orders = orders.filter(Q(status='confirming')|Q(status='confirmed')).filter(payed__isnull=False)|orders_unpayed
+        orders = orders.filter(Q(status='confirming')|Q(status='confirmed'))
     elif tab == 'owner':
-        orders = orders.filter(bike__owner = participator,payed__isnull= False)
+        orders = orders.filter(bike__owner = participator)
     elif tab == 'renter':
         orders = orders.filter(renter = participator)
     for order in orders :
@@ -301,10 +297,7 @@ def cancel(request,orderNumber):
         else:
             ohters = ""
         if order.bike.owner == participator :
-            if order.status == 'confirming':
-                order.set_status('rejected')
-            elif order.status == 'confirmed':
-                order.set_status('canceled')
+            order.set_status('rejected')
             order.rejectReason = reason + '' + others
             content = "{"+'"{0}":"{1}"'.format('reason',order.rejectReason)+"}"
             Message(target=order.renter.user.username,
@@ -312,12 +305,9 @@ def cancel(request,orderNumber):
                 template_code='SMS_7010034'
                 ).save()
         elif order.renter == participator :
-            if order.status == 'confirming':
-                order.set_status('withdraw')
-            elif order.status == 'confirmed':
-                order.set_status('withdraw_confirmed')
-            order.withdrawReason = reason + ':' + others
-            content = "{"+'"{0}":"{1}"'.format('oid',order.number)+',"{0}":"{1}"'.format('reason',order.withdrawReason)+"}"
+            order.set_status('canceled')
+            order.canceledReason = reason + ':' + others
+            content = "{"+'"{0}":"{1}"'.format('oid',order.number)+',"{0}":"{1}"'.format('reason',order.canceledReason)+"}"
             Message(target=order.bike.owner.user.username,
                 content=content,
                 template_code='SMS_6930124'

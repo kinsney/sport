@@ -29,9 +29,9 @@ SECRET_KEY = '0#92e&xud-w5ry-6k6c^n#5s8hj+6@(8kmwz5=aj%aplilu3k1'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1"]
+ALLOWED_HOSTS = ["101.200.145.32",'localhost']
 
-SITE_URL = "http://www.qikezuche.com"
+SITE_URL = "http://101.200.145.32"
 
 # Application definition
 
@@ -152,14 +152,15 @@ TEST_OSS_MEDIA_URL = ''
 # http://django-constance.readthedocs.org/
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 CONSTANCE_CONFIG = {
-    'Borokerage':(0.1,u'每单所收佣金'),
+    'Brokerage':(0.1,u'每单所收佣金'),
     'VerificationCodeLength':(6,u'验证码长度'),
     'VerificationAvailableMinutes':(5,u'验证码有效时间'),
     'IPMessageLimit':(100,u'每个IP每日允许发送的信息最大值'),
     'VerificationCodeTemplate': (u'【%s】',
         u'用“%s”来替换要发送的验证码。'),
     'bikeNumberLength':(13,u'单车编号长度'),
-    'orderNumberLength':(13,u'订单编号长度')
+    'orderNumberLength':(13,u'订单编号长度'),
+    'withdrawRate':(0.1,'撤单利率'),
 }
 
 CONSTANCE_SUPERUSER_ONLY = True

@@ -219,8 +219,8 @@ calculate()
             <div class='ui segment'>
                 <form action="{% url "orderSubmit" bike.number %}" method="post">
                     {% csrf_token %}
-                <label class="dayRent" for="" ><i class='yen icon'></i>{{ bike.dayRent}}/天</label>
-                <label class="otherRent" for=""><i class='yen icon'></i>{{ bike.hourRent}}/时<i class='yen icon'></i>{{ bike.weekRent}}/周</label>
+                <label class="dayRent" for="" ><i class='yen icon'></i>{{ bike.dayRent|floatformat:"0"}}/天</label>
+                <label class="otherRent" for=""><i class='yen icon'></i>{{ bike.hourRent|floatformat:"0"}}/时<i class='yen icon'></i>{{ bike.weekRent|floatformat:"0"}}/周</label>
                 <div class='fluid ui left labeled ui input right icon'>
                     <div class="ui basic label">取车时间</div>
                     <input type="text" id="starttime" name="starttime" value="{{ starttime|default:''|date:"Y-m-d H:i" }}" class="" readonly>

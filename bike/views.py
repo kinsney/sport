@@ -89,6 +89,7 @@ def bikeSearch(request):
         for bike in bikes:
             bike.photo = Photo.objects.filter(bike=bike)[0]
         return render(request,'bikeSearch.html',locals())
+
 @login_required
 def bikeSubmit(request):
     participator = Participator.objects.of_user(request.user)
@@ -144,7 +145,6 @@ def bikeSubmit(request):
             bike.maxDuration = timedelta(weeks=int(maxTime))
             bike.minDuration = timedelta(hours=int(minTime))
             school = University.objects.get(name=university)
-
             if participator.school:
                 pass
             else:

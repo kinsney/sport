@@ -3,3 +3,4 @@ django-constance==1.1.2
 django-picklefield
 Pillow
 pymysql
+requests==2.9.1

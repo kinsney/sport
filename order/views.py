@@ -7,7 +7,6 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from message.models import Message
 from participator.views import login_required
 from django.views.decorators.csrf import csrf_exempt
-from order.api import verify_alipay_notify,get_alipay_url_params,ALIPAY_GATEWAY
 from participator.views import get_average_time,get_ratio
 from urllib.request import urlopen
 # Create your views here.
@@ -31,7 +30,6 @@ def get_time(starttime, endtime):
     return rentTime
 
 
-@login_required
 def overbooking(request,bikeNumber,starttime,endtime):
     participator = Participator.objects.of_user(request.user)
     bike = Bike.objects.get(number= bikeNumber)
@@ -98,16 +96,8 @@ def submitDone(request):
             order.equipments = equipments
             order.amount = amount
             order.save()
-            param = get_alipay_url_params(request,order)
-            url = ALIPAY_GATEWAY + '?' + param
-            return redirect(url)
         else :
             return HttpResponseBadRequest()
     except (KeyError,AssertionError):
         return HttpResponseBadRequest()
     return redirect(reverse('orderManage'))
-
-@csrf_exempt
-def payed(request):
-    verify_alipay_notify(request.POST)
-    return HttpResponse('success')

@@ -11,10 +11,12 @@
 {{ block.super }}
 <script type="text/javascript" src="{% static "components/state.min.js" %}"></script>
 <script type="text/javascript" src="{% static "components/accordion.min.js" %}"></script>
+<script type="text/javascript" src="{% static "components/visibility.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/library/bootstrap-datetimepicker.min.js"%}"></script>
 <script src="http://api.map.baidu.com/api?v=2.0&ak=YOOj78k6VSa1CzmQXrKS9gUm"></script>
 <script src="{% static "js/bikeSearch.js" %}"></script>
 <script>
+void function($){
     var map = new BMap.Map("maparea")
     var point = new BMap.Point(116.367655, 39.968237);
     map.centerAndZoom(point, 14);
@@ -158,7 +160,7 @@
             {% endfor %}
         ]
         renderMap(data)
-
+}(window.jQuery)
 </script>
 {% endblock %}
 
@@ -273,6 +275,7 @@
                 </div>
                 </form>
                 <div class="ui bottom segment attached" style="border-top:0">
+
                     <div class='ui two stackable cards link bikes'>
                             {% include "bikeCard.html" %}
                     </div>

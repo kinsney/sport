@@ -56,11 +56,14 @@ class Address(models.Model):
     longitude = models.CharField(u'经度',max_length = 20)
     latitude = models.CharField(u'纬度',max_length = 20)
     def __str__(self):
-        bike = Bike.objects.get(address=self)
-        return u'%s %s' % (
-                bike.owner.school,
-                self.name
-            )
+        try:
+            bike = Bike.objects.get(address=self)
+            return u'%s %s' % (
+                    bike.owner.school,
+                    self.name
+                )
+        except:
+            return '无用地址'
     class Meta:
         verbose_name = u'地理位置'
         verbose_name_plural = u'地理位置'
@@ -74,9 +77,9 @@ class Bike(models.Model):
     amount = models.IntegerField(u'单车数量',default=1)
     address = models.ForeignKey(Address,verbose_name='具体位置',null=True)
     status = models.CharField(u'状态',choices=statusChoices,max_length = 10,default='checking')
-    hourRent = models.DecimalField("每小时租金",max_digits=6,decimal_places=2)
-    dayRent = models.DecimalField("每天租金",max_digits=6,decimal_places=2)
-    weekRent = models.DecimalField("每周租金",max_digits=6,decimal_places=2)
+    hourRent = models.DecimalField("每小时租金",max_digits=6,decimal_places=2,default=0)
+    dayRent = models.DecimalField("每天租金",max_digits=6,decimal_places=2,default=0)
+    weekRent = models.DecimalField("每周租金",max_digits=6,decimal_places=2,default=0)
     deposit = models.IntegerField(u'押金',blank=True,null=True)
     studentDeposit = models.BooleanField(u'学生租客是否免押金',default=True)
     pledge = models.CharField(u'抵押',choices=pledgeChoices,max_length = 10,blank=True,null=True)
