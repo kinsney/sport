@@ -4,7 +4,7 @@
 <div class='ui card' id="{{ bike.number }}">
     <a href="{% url "overbooking" bike.number starttime|date:"Y-m-d H:i" endtime|date:"Y-m-d H:i" %}" class='ui image'>
         <label class="ui left ribbon label" style="z-index:1">{{ bike.get_status_display }}</label>
-        <img class='visible content' src="{{ bike.photo.content.url }}" alt="">
+        <img class='visible content' src="{{ bike.thumbnail.content.url }}" alt="">
         <div class='price ui bottom left attached'>
             <div class='ui mini statistic'>
                 <div class='value'>

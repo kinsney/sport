@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static from staticfiles %}
-{% block title %}搜索单车{% endblock %}
+{% block title %}租车搜索{% endblock %}
 {% block stylesheets %}
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-datetimepicker.min.css" %}">
@@ -19,11 +19,13 @@
 void function($){
     var map = new BMap.Map("maparea")
     var point = new BMap.Point(116.367655, 39.968237);
+    var existing_data = []
     map.centerAndZoom(point, 14);
     map.disableScrollWheelZoom();
     map.enableDoubleClickZoom();
     map.setCurrentCity("北京");
     map.enableScrollWheelZoom(true);
+
     var markers={}
     var myIcon = new BMap.Icon("{% static "images/map.png" %}", new BMap.Size(50, 110),
         {   offset: new BMap.Size(0, 0),
@@ -61,6 +63,11 @@ void function($){
             map.addOverlay(marker)
             marker.addEventListener('mouseover',hoverEvent)
         })
+        hoverMarker.addEventListener('mousedown',function(){
+            var number = this.number
+            var href = $("#"+number+" a").attr("href")
+            window.location.href = $("#"+number+" a").attr("href")
+        })
     }
     function renderMap(data){
         data.forEach(function(value,index){
@@ -74,21 +81,24 @@ void function($){
                         })
     }
     function refresh(){
-            $.ajax({
-                    url: $form.attr('action'),
-                    method: $form.attr('method'),
-                    data: $form.serialize(),
-                    success: function (data) {
-                        data = $.parseJSON(data)
-                        $('.bikes').html(data["html"])
-                        map.clearOverlays()
-                        markers={}
-                        renderMap(data["bikes"])
-                    },
-                    error: function (xhr) {
-                      console.log(xhr)
-                    }
-                })
+        // 重置请求数
+        $('input[name="page"]').val(1)
+        $.ajax({
+                url: $form.attr('action'),
+                method: $form.attr('method'),
+                data: $form.serialize(),
+                success: function (data) {
+                    data = $.parseJSON(data)
+                    $('.bikes').html(data["html"])
+                    map.clearOverlays()
+                    markers={}
+                    existing_data = data["bikes"]
+                    renderMap(existing_data)
+                },
+                error: function (xhr) {
+                  console.log(xhr)
+                }
+            })
     }
         $('.city.dropdown').dropdown({
             onChange:function(value){
@@ -138,6 +148,12 @@ void function($){
                 refresh()
             }
         })
+        $('input[name="start=-time"]').on('change',function(){
+            refresh()
+        })
+        $('input[name="endtime"]').on('change',function(){
+            refresh()
+        })
         $('.bikes').on('mouseover mouseout','.card',function(event){
             if(event.type =="mouseover") {
                     number = $(this).attr('id')
@@ -160,6 +176,32 @@ void function($){
             {% endfor %}
         ]
         renderMap(data)
+
+        $('#leftblock').scroll(function(){
+            viewH = $(this).height();
+            contentH = $(this).get(0).scrollHeight;
+            scrollTop = $(this).scrollTop();
+            if(contentH-viewH-scrollTop<=1){
+                now_page = Number($('input[name="page"]').val())
+                $('input[name="page"]').val(now_page+1)
+                $.ajax({
+                url: $form.attr('action'),
+                method: $form.attr('method'),
+                data: $form.serialize(),
+                success: function (data) {
+                    data = $.parseJSON(data)
+                    $('.bikes').append(data["html"])
+                    map.clearOverlays()
+                    markers={}
+                    existing_data = existing_data.concat(data["bikes"])
+                    renderMap(existing_data)
+                },
+                error: function (xhr) {
+                  console.log(xhr)
+                }
+            })
+            }
+        })
 }(window.jQuery)
 </script>
 {% endblock %}
@@ -171,6 +213,7 @@ void function($){
         <div class='column' id="leftblock">
             <div class='scroll'>
             <form id="filter_form" action="{% url "bikeSearch" %}" method="post" >
+            <input type="hidden" value="1" name="page">
             {% csrf_token %}
             <div class='grid segment ui stackable attached '>
                     <div class='eight wide column'>
@@ -226,12 +269,12 @@ void function($){
                                 </div>
                             </div>
                             <div class="eight wide column">
-                                    <span class='text'>学生租客是否免租金</span>
                                     <div class="ui buttons">
                                         <div class="ui button" data-name="True"><i class="checkmark icon"></i>是</div>
                                         <div class="ui button" data-name="False"><i class="checkmark icon"></i>否</div>
                                         <div class="ui button active" data-name=""><i class="checkmark icon"></i>全部</div>
                                         <input type="hidden" name="deposit" value="">
+                                        <label class="ui label">是否免押金</label>
                                     </div>
                             </div>
                         </div>

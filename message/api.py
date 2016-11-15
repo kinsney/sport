@@ -4,7 +4,7 @@ from message.alidayu import AlibabaAliqinFcSmsNumSendRequest
 
 def send(message):
     try:
-        req=AlibabaAliqinFcSmsNumSendRequest("23334665","211253435ed11f59422347e81cda0d1a",'https://eco.taobao.com/router/rest')
+        req=AlibabaAliqinFcSmsNumSendRequest("23498261","fd8cb91cadf6d4857d048907e41cdf94",'https://eco.taobao.com/router/rest')
         req.extend="123456"
         req.sms_type="normal"
         req.sms_free_sign_name="骑客租车"

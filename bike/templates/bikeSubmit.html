@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static from staticfiles %}
-{% block title %}搜索单车{% endblock %}
+{% block title %}上传单车{% endblock %}
 {% block stylesheets %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static "css/bikeSubmit.css" %}">
@@ -10,7 +10,6 @@
 {{ block.super }}
 <script src="{% static "components/checkbox.min.js" %}"></script>
 <script src="http://api.map.baidu.com/api?v=2.0&ak=YOOj78k6VSa1CzmQXrKS9gUm"></script>
-
 <script>
     var map = new BMap.Map("allmap");    // 创建Map实例
     map.centerAndZoom(new BMap.Point(116.36765, 39.968237), 16);  // 初始化地图,设置中心点坐标和地图级别
@@ -29,6 +28,7 @@
             $('input[name="latitude"]').val(e.point.lat)
         });
     var myGeo = new BMap.Geocoder()
+
     function addMarker(point) {
         var myIcon = new BMap.Icon("{% static "images/map.png" %}", new BMap.Size(50, 110),
         {   offset: new BMap.Size(0, 0),
@@ -154,7 +154,7 @@
                 rules: [
                     {
                         type : 'integer[1..100]',
-                        prompt:'请输入一个整数'
+                        prompt:'请输入一个1到100的整数'
                     }
                 ]
             },
@@ -220,66 +220,10 @@
                     prompt : '请在地图上标上您爱车的大致位置'
                   }
                 ]
-            },
-            hourRent:{
-                identifier:'rent',
-                rules:[
-                    {
-                        type:'empty',
-                        prompt:'您想免费出租嘛?'
-                    },
-                    {
-                        type: 'integer',
-                        prompt:'为了便于计算，还是输入个整数吧'
-                    }
-
-                ]
-            },
-            dayRent:{
-                identifier:'rent',
-                rules:[
-                    {
-                        type:'empty',
-                        prompt:'您想免费出租嘛?'
-                    },
-                    {
-                        type: 'integer',
-                        prompt:'为了便于计算，还是输入个整数吧'
-                    }
-
-                ]
-            },
-            weekRent:{
-                identifier:'rent',
-                rules:[
-                    {
-                        type:'empty',
-                        prompt:'您想免费出租嘛?'
-                    },
-                    {
-                        type: 'integer',
-                        prompt:'为了便于计算，还是输入个整数吧'
-                    }
-
-                ]
-            },
-            minTime:{
-                identifier:'renttime',
-                rules:[
-                    {
-                        type:'integer',
-                        prompt:'为了方便计算，还是输入个整数吧'
-                    },
-                    {
-                        type:'empty',
-                        prompt:'请设置一个时间段'
-                    }
-                ]
             }
         }
      })
 </script>
-<script src="{% static "js/bikeSubmit.js" %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -378,83 +322,15 @@
                     <input type="hidden" name="longitude">
                 </div>
             </div>
-            <div class='ui segment'>
-                <h4 class='ui header dividing orange'><i class='icon attach'></i>订单规则</h4>
-                <div class='field ui required'>
-                    <label for="" class='label'>价格设置</label>
-                    <div class='ui right labeled input left icon fluid'>
-                        <i class='icon yen'></i>
-                        <input type="text" placeholder="请填写价格" name="hourRent" data-validate="rent">
-                        <div class='ui basic label'>/时</div>
-                    </div>
-                </div>
-                <div class='field ui required'>
-                    <div class='ui right labeled input left icon fluid'>
-                        <i class='icon yen'></i>
-                        <input type="text" placeholder="请填写价格" name="dayRent" data-validate="rent">
-                        <div class='ui basic label'>/天</div>
-                    </div>
-                </div>
-                <div class='field ui required'>
-                    <div class='ui right labeled input left icon fluid'>
-                        <i class='icon yen'></i>
-                        <input type="text" placeholder="请填写价格" name="weekRent" data-validate="rent">
-                        <div class='ui basic label'>/周</div>
-                    </div>
-                </div>
+            <div class="orderContent">
+            {% if sold %}
+                {% include "soldOrder.html" %}
+            {% else %}
+                {% include "rentOrder.html" %}
+            {% endif %}
             </div>
-            <div class="field">
-                <label for="">押金金额（元）</label>
-                <div class='ui input left icon'>
-                        <i class='icon yen'></i>
-                        <input type="text" placeholder="请填写价格" name="deposit">
-                </div>
-                <div class="ui pointing label">不填写视为无押金要求（对一切租客）</div>
-            </div>
-            <div class="field required">
-                <label for="">学生租客是否免押金</label>
-                <div class="ui toggle checkbox studentDeposit">
-                    <input type="checkbox" name="studentDeposit" checked>
-                    <label class='label studentDeposit'>是</label>
-                </div>
-            </div>
-            <div class="field required">
-                <label for="">租客是否需要抵押证件</label>
-                <div class='ui search selection dropdown'>
-                        <input type="hidden" class='input' name="pledge">
-                        <i class="dropdown icon"></i>
-                        <div class="default text">选择证件</div>
-                        <div class="menu">
-                            <div class="item" data-value='studentId'>学生证</div>
-                            <div class="item" data-value='campusId'>校园卡</div>
-                            <div class="item" data-value='userId'>身份证</div>
-                            <div class="item" data-value='noPledge'>无需抵押</div>
-                        </div>
-                </div>
-            </div>
-            <div class='field required'>
-            <label for="">租期范围</label>
-                <div class='two fields required'>
-                    <div class='field ui right labeled input '>
-                        <div class='ui label'><i class='wait icon'></i>最短</div>
-                        <input type="text" value="8" name="minTime">
-                        <div class='ui basic label'>小时</div>
-                    </div>
-                    <div class='field ui right labeled input '>
-                        <div class='ui label'><i class='wait icon'></i>最长</div>
-                        <input type="text" value="1" name="maxTime">
-                        <div class='ui basic label'>周</div>
-                    </div>
-                </div>
-            </div>
-            <div class='field required'>
-                <label for="">退订规则</label>
-                <div class="ui stacked segment orange">
-                    <p>租客取消订单和提前还车时间以骑客租车系统中记录的时间为准。如与租客产生争议，请在争议发生后24小时内联系客服，我们会尽最大努力维护您的正当权益。</p>
-                </div>
-            </div>
+
             <button type="submit" class='ui button orange submit'>确认发布</button>
-        </div>
         </form>
     </div>
 {% endblock %}

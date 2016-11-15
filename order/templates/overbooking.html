@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load tagLibrary %}
 {% load staticfiles %}
+{% block title %}单车详情{% endblock %}
 {% block stylesheets %}
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-datetimepicker.min.css" %}">
@@ -13,7 +14,6 @@
 {% endblock %}
 {% block scripts%}
 {{ block.super }}
-<script src="{% static "js/overbooking.js"%}"></script>
 <script type="text/javascript" src="{% static "js/library/bootstrap-datetimepicker.min.js"%}"></script>
 <script src="http://api.map.baidu.com/api?v=2.0&ak=YOOj78k6VSa1CzmQXrKS9gUm"></script>
 <script>
@@ -258,6 +258,9 @@ calculate()
                         <div class='content'>数量</div>
                     </div>
                     <button class="ui fluid orange button submit" type="submit">租金共<span></span>元|立即预定</button>
+                    {% if bike.soldable%}
+                    <a class="ui fluid teal button submit" href="{% url "soldConfirm" bike.number %}">售价{{bike.soldMoney}}元|预约车主</a>
+                    {% endif %}
                 </div>
             </form>
             </div>
@@ -273,7 +276,7 @@ calculate()
                       </div>
                     </div>
                     <div class="extra content">
-                      <span class="right floated">2013年加入 </span>
+                      <span class="right floated">{{ bike.owner.}}</span>
                       <div class='ui star rating readonly' data-rating="{{ bike.owner.level }}"></div>
                     </div>
                     <div class='extra content'>

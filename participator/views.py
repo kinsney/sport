@@ -10,7 +10,7 @@ from django.template.loader import render_to_string
 from message.models import IPRecord, VerificationCode,Message
 from order.models import Comments
 from participator.models import Participator,Province,VerifyCategory,VerifyAttachment
-from order.models import Order
+from order.models import Order,Transaction
 from bike.models import Bike,Photo
 from participator.forms import verifyForm
 import constance
@@ -24,13 +24,13 @@ year = datetime.date.today().year
 
 def get_month_profit(user):
     '''每月收益'''
-    orders = Order.objects.filter(bike__owner=user,added__month=month,added__year=year,status='completed')
+    orders = Order.objects.filter(bike__owner=user,beginTime__month=month,beginTime__year=year,status='completed')
     profit= orders.aggregate(Sum('rentMoney'))
     return profit["rentMoney__sum"] or 0
 
 def get_ratio(user):
     '''接单率'''
-    orders_success = Order.objects.exclude(bike__owner=user,status__in=["canceled","rejected"])
+    orders_success = Order.objects.filter(bike__owner=user,status__in=["completed","confirmed"])
     orders_all = Order.objects.filter(bike__owner=user)
     if len(orders_all)>0:
         ratio = round(len(orders_success)/len(orders_all)*100)
@@ -42,12 +42,14 @@ def get_average_time(user):
     '''平均接单时间'''
     orders = Order.objects.filter(bike__owner=user,status__in=["completed","confirmed"])
     times = orders.aggregate(Sum('receiveTime'))
-    if type(times["receiveTime__sum"]) == type(1):
+    if len(orders) != 0:
         time = times["receiveTime__sum"]/len(orders)
         time = time-datetime.timedelta(microseconds=time.microseconds)
+        return time
     else :
-        time = datetime.timedelta(0)
-    return time
+        return "暂无"
+    # time = datetime.timedelta(0)
+
 
 def login_required(view):
     def wrapped_view(request, *args, **kwargs):
@@ -159,6 +161,7 @@ def orderManage(request):
     successOrders = len(Order.objects.filter(bike__owner=participator,status='completed'))
     time = get_average_time(participator)
     return render(request,'orderManage.html',locals())
+
 @login_required
 def orderDisplay(request,tab):
     participator = Participator.objects.of_user(request.user)
@@ -166,16 +169,25 @@ def orderDisplay(request,tab):
             Q(renter = participator)
             |Q(bike__owner = participator)
             )
+    transactions = Transaction.objects.filter(
+        Q(renter = participator)
+            |Q(bike__owner = participator)
+        )
     if tab == 'recent':
         orders = orders.filter(Q(status='confirming')|Q(status='confirmed'))
+        transactions = transactions.filter(status="confirming")
     elif tab == 'owner':
         orders = orders.filter(bike__owner = participator)
+        transactions = transactions.filter(bike__owner = participator)
     elif tab == 'renter':
         orders = orders.filter(renter = participator)
+        transactions = transactions.filter(renter = participator)
     for order in orders :
         order.bike.photo = Photo.objects.filter(bike=order.bike)[0]
         order.comments = Comments.objects.filter(order = order)
-    return render_to_response('orderTable.html',{'orders':orders,'participator':participator},context_instance = RequestContext(request))
+    for transaction in transactions:
+        transaction.bike.photo = Photo.objects.filter(bike=transaction.bike)[0]
+    return render_to_response('orderTable.html',{'orders':orders,'participator':participator,'transactions':transactions},context_instance = RequestContext(request))
 @login_required
 def myBike(request):
     participator = Participator.objects.of_user(request.user)
@@ -237,7 +249,6 @@ def verifyInfo(request):
     if participator.status == 'verified':
         return HttpResponseForbidden()
     try:
-
         form = verifyForm(request.POST,instance=participator)
         form.save()
         request.user.save()
@@ -267,22 +278,25 @@ def orderConfirm(request,orderNumber):
         if  order.status == 'confirming':
             order.set_status('confirmed')
             content = "{"+'"{0}":"{1}"'.format('tell',order.bike.owner.user.username)+"}"
+            #车主确认订单
             Message(target=order.renter.user.username,
                 content=content,
-                template_code='SMS_7220735'
+                template_code='SMS_25390240'
                 ).save()
             return redirect(reverse('orderManage'))
         if order.status == 'confirmed':
             order.set_status('completed')
             content = "{"+"}"
+            #车主完成订单
             Message(target=order.renter.user.username,
                 content=content,
-                template_code='SMS_7225689'
+                template_code='SMS_25325300'
                 ).save()
             return HttpResponse(status=200)
     except (Order.DoesNotExist,AssertionError) :
         return HttpResponseBadRequest()
 
+# *******************************取消订单****************************
 @login_required
 def cancel(request,orderNumber):
     try:
@@ -300,17 +314,19 @@ def cancel(request,orderNumber):
             order.set_status('rejected')
             order.rejectReason = reason + '' + others
             content = "{"+'"{0}":"{1}"'.format('reason',order.rejectReason)+"}"
+            #车主拒绝订单
             Message(target=order.renter.user.username,
                 content=content,
-                template_code='SMS_7010034'
+                template_code='SMS_25520320'
                 ).save()
         elif order.renter == participator :
             order.set_status('canceled')
             order.canceledReason = reason + ':' + others
             content = "{"+'"{0}":"{1}"'.format('oid',order.number)+',"{0}":"{1}"'.format('reason',order.canceledReason)+"}"
+            #租客取消订单
             Message(target=order.bike.owner.user.username,
                 content=content,
-                template_code='SMS_6930124'
+                template_code='SMS_25405301'
                 ).save()
         order.save()
         return HttpResponse(status=200)
@@ -336,18 +352,44 @@ def orderComment(request,orderNumber):
     except:
         return HttpResponseBadRequest()
 
-
+#删除单车
 @login_required
 def bikeDelete(request,bikeNumber):
     try:
         bike = Bike.objects.get(number=bikeNumber)
-        assert bike.status == 'Renting'
-        order = Order.objects.filter(bike=bike,status__in=['confirming','confirmed'])
-        assert len(order) == 0
         bike.status = "deleted"
         bike.save()
     except (KeyError, AssertionError):
         HttpResponseBadRequest()
     return HttpResponse(status=200)
 
+#拒绝交易
+@login_required
+def cancelTransaction(request,trannumber):
+    try:
+        participator = Participator.objects.of_user(request.user)
+        transaction = get_object_or_404(Transaction,number=trannumber)
+        if transaction.renter == participator:
+            transaction.set_status('canceled')
+        elif transaction.bike.owner == participator:
+            transaction.set_status('rejected')
+    except:
+        return HttpResponseBadRequest()
+    return HttpResponse(200)
 
+@login_required
+def confirmTransaction(request,trannumber):
+    try:
+        participator = Participator.objects.of_user(request.user)
+        transaction = get_object_or_404(Transaction,number=trannumber)
+        assert transaction.bike.owner == participator
+        transaction.set_status("completed")
+        content = "{"+"}"
+        #二手车成交通知
+        Message(target=transaction.bike.owner,
+            content=content,
+            template_code='SMS_24880413'
+            ).save()
+    except:
+        return HttpResponseBadRequest()
+    return HttpResponse(200)

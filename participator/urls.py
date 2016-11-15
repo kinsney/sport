@@ -16,5 +16,7 @@ urlpatterns = [
     url(r'^bikeDelete/(?P<bikeNumber>[0-9]+)$',views.bikeDelete,name='bikeDelete'),
     url(r'^orderConfirm/(?P<orderNumber>[0-9]+)$',views.orderConfirm,name='orderConfirm'),
     url(r'^cancel/(?P<orderNumber>[0-9]+)$',views.cancel,name='cancel'),
-    url(r'^orderComment/(?P<orderNumber>[0-9]+)$',views.orderComment,name="orderComment")
+    url(r'^orderComment/(?P<orderNumber>[0-9]+)$',views.orderComment,name="orderComment"),
+    url(r'^cancelTransaction/(?P<trannumber>[0-9]+)$',views.cancelTransaction,name='cancelTransaction'),
+    url(r'^confirmTransaction/(?P<trannumber>[0-9]+)$',views.confirmTransaction,name='confirmTransaction'),
 ]

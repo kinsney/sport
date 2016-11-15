@@ -25,12 +25,13 @@ equipmentChoices =(
     ('compass',u'指南针'))
 
 statusChoices = (
-        ('Rented','已出租'),
-        ('Renting','待出租'),
+        ('rented','已出租'),
+        ('renting','待出租'),
+        ('relaxing','暂停出租'),
         ('checking','待审核'),
         ('deleted','已删除'),
         ('failed','审核失败'),
-        ('relaxing','暂停出租'))
+        )
 pledgeChoices = (
         ('studentId',u'学生证'),
         ('campusId',u'校园卡'),

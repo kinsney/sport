@@ -1,5 +1,6 @@
 {% extends "participator_base.html" %}
 {% load static from staticfiles %}
+{% block title %}个人信息{% endblock %}
 {% block stylesheets %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static "css/jquery.recSelector.css"%}">
@@ -117,9 +118,10 @@ $('[name="school"]').recSelector(university_data);
             </div>
             <div class='ui divider'></div>
             <div class="field dividing ">
-              {% if participator.status == 'verified' %}
+              {% if participator.status == 'verifing' %}
                 <button type="submit" class='ui button positive'><i class='icon edit'></i>修改验证信息</button>
-              {% else %}
+              {% endif %}
+              {% if participator.status == 'notYet' %}
                 <button  type="submit" class='ui button positive'><i class='icon edit'></i>提交验证信息</button>
               {% endif %}
             </div>

@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'constance.backends.database',
-    'home',
     'bike',
     'order',
     'participator',
@@ -61,6 +60,11 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'participator.hashers.DoubleMD5PasswordHasher',
 ]
 
 ROOT_URLCONF = 'sport.urls'
@@ -161,6 +165,7 @@ CONSTANCE_CONFIG = {
     'bikeNumberLength':(13,u'单车编号长度'),
     'orderNumberLength':(13,u'订单编号长度'),
     'withdrawRate':(0.1,'撤单利率'),
+    'numbersPerRequest':(12,'每次请求得到的数目')
 }
 
 CONSTANCE_SUPERUSER_ONLY = True

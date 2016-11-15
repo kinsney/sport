@@ -25,7 +25,7 @@ class Message(models.Model):
         super(Message, self).clean()
 
     def save(self, *args, **kwargs):
-        #send(self)
+        send(self)
         super(Message, self).save(*args, **kwargs)
     class Meta:
         verbose_name = u'消息'
@@ -80,7 +80,7 @@ class VerificationCode(models.Model):
         if self.pk is not None: # Modify a verification code
             raise ValidationError(u'禁止修改已存在的验证码')
         super(VerificationCode, self).clean()
-
+    # 用户注册验证码
     def save(self, *args, **kwargs):
         if self.pk is None: # Create a verification code
             length = constance.config.VerificationCodeLength
@@ -90,7 +90,7 @@ class VerificationCode(models.Model):
             message = Message(
                 target = self.target,
                 content = content,
-                template_code = 'SMS_7000038')
+                template_code = 'SMS_25465321')
             message.save()
             self.code = code
             self.message =  message

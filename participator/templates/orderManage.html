@@ -1,6 +1,7 @@
 {% extends "participator_base.html" %}
 {% load static from staticfiles %}
 {% load tagLibrary %}
+{% block title %}我的订单{% endblock %}
 {% block scripts %}
 {{ block.super }}
 <script src="{% static "components/state.min.js"%}"></script>
@@ -53,7 +54,7 @@
             {{ time }}
           </div>
           <div class='label'>
-            平分接单时间
+            平均接单时间
           </div>
         </div>
       </div>
@@ -73,7 +74,7 @@
       </div>
     </div>
 
-<div class="ui  modals page transition hidden ">
+<div class="ui modals page transition hidden ">
     <form class="ui fullscreen modal transition hidden withdrawReason">
     {% csrf_token %}
       <i class="close icon"></i>
@@ -139,12 +140,36 @@
         为他（她）评分
       </div>
       <div class="content">
-      <p>你确定这个评分吗？（不可以为0星哟）</p>
+        <p>您确定这个评分吗？（不可以为0星哟）</p>
+      </div>
+      <div class="actions">
+        <div class="ui negative button">否 </div>
+        <div class="ui positive right labeled icon button confirm">是 <i class="checkmark icon"></i> </div>
+      </div>
     </div>
-    <div class="actions">
-      <div class="ui negative button">否 </div>
-      <div class="ui positive right labeled icon button confirm">是 <i class="checkmark icon"></i> </div>
+    <div class="ui small modal transition transactionCancel">
+      <div class="header">
+        取消这次交易
+      </div>
+      <div class="content">
+        <p>您确定取消这次交易吗？</p>
+        <div class="actions">
+        <div class="ui negative button">否 </div>
+        <div class="ui positive right labeled icon button confirmCancel">是 <i class="checkmark icon"></i></div>
+      </div>
+      </div>
     </div>
+    <div class="ui small modal transition confirmTransaction">
+      <div class="header">
+        确认这次交易
+      </div>
+      <div class="content">
+        <p>您确定这次交易吗？</p>
+        <div class="actions">
+        <div class="ui negative button">否 </div>
+        <div class="ui positive right labeled icon button transactionConfirm">是 <i class="checkmark icon"></i></div>
+      </div>
+      </div>
     </div>
 </div>
 

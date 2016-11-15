@@ -1,7 +1,7 @@
 from django.db import models
 from participator.models import Participator,University
 from . import suitHeightChoices,howOldChoices,equipmentChoices,statusChoices,pledgeChoices,GENDER,speedChangeChoices,suspensionChoices,wheelSizeChoices,brakeTypeChoices,handlebarChoices
-
+from datetime import timedelta
 # Create your models here.
 class Brand(models.Model):
     name = models.CharField(u'名称', max_length=32, primary_key=True)
@@ -29,15 +29,6 @@ class Version(models.Model):
     brand = models.ForeignKey(Brand,verbose_name=u'品牌')
     order = models.SmallIntegerField(u'顺序', default=0)
     category = models.ForeignKey(Category,verbose_name=u'单车类型')
-    def __str__(self):
-        return self.name
-    class Meta:
-        verbose_name = u'型号'
-        verbose_name_plural = u'型号'
-        ordering = ('order', 'name')
-
-
-class Attribute(models.Model):
     price = models.IntegerField(u'原价',blank=True,default=0)
     speedChange = models.CharField(u'变速',choices=speedChangeChoices,blank=True,max_length=10)
     wheelSize = models.CharField(u'车轮尺寸',choices=wheelSizeChoices,blank=True,max_length=10)
@@ -45,10 +36,12 @@ class Attribute(models.Model):
     handlebar = models.CharField(u'车把类型',choices=handlebarChoices,blank=True,max_length=10)
     suspension = models.CharField(u'避震类型',choices=suspensionChoices,blank=True,max_length=10)
     quickRelease = models.BooleanField(u'是否快拆',default=True)
-    version = models.ForeignKey(Version,verbose_name=u'单车型号')
+    def __str__(self):
+        return self.name
     class Meta:
-        verbose_name = u'属性'
-        verbose_name_plural = u'属性'
+        verbose_name = u'型号'
+        verbose_name_plural = u'型号'
+        ordering = ('order', 'name')
 
 
 class Address(models.Model):
@@ -68,36 +61,42 @@ class Address(models.Model):
         verbose_name = u'地理位置'
         verbose_name_plural = u'地理位置'
 
-
+default_maxDuration = timedelta(weeks=1)
+default_minDuration = timedelta(hours=8)
 class Bike(models.Model):
-    name = models.CharField(u'单车名称',max_length= 20,null=True)
+    name = models.CharField(u'单车名称',max_length= 30,null=True)
     number = models.CharField(u'编号',max_length=20,blank=True,null=True)
     version = models.ForeignKey(Version,verbose_name=u'型号',null=True)
     owner = models.ForeignKey(Participator,verbose_name=u'车主',null=True)
     amount = models.IntegerField(u'单车数量',default=1)
     address = models.ForeignKey(Address,verbose_name='具体位置',null=True)
     status = models.CharField(u'状态',choices=statusChoices,max_length = 10,default='checking')
-    hourRent = models.DecimalField("每小时租金",max_digits=6,decimal_places=2,default=0)
-    dayRent = models.DecimalField("每天租金",max_digits=6,decimal_places=2,default=0)
-    weekRent = models.DecimalField("每周租金",max_digits=6,decimal_places=2,default=0)
-    deposit = models.IntegerField(u'押金',blank=True,null=True)
+    hourRent = models.IntegerField("每小时租金",default=0)
+    dayRent = models.IntegerField("每天租金",default=0)
+    weekRent = models.IntegerField("每周租金",default=0)
+    deposit = models.IntegerField(u'押金',blank=True,null=True,default=0)
     studentDeposit = models.BooleanField(u'学生租客是否免押金',default=True)
-    pledge = models.CharField(u'抵押',choices=pledgeChoices,max_length = 10,blank=True,null=True)
+    pledge = models.CharField(u'抵押',choices=pledgeChoices,max_length = 10,blank=True,null=True,default='noPledge')
     suitHeight = models.CharField(u'适合身高',choices=suitHeightChoices,max_length = 10,blank=True,null=True)
     howOld = models.IntegerField(u'新旧程度',choices=howOldChoices,blank=True,null=True)
     sexualFix = models.CharField(u'适合男女',choices=GENDER,max_length=15,default=None,null=True)
     equipment = models.CharField(u'提供装备',max_length=100,blank=True,null=True)
-    maxDuration = models.DurationField(u'最长租期',blank=True,null=True)
-    minDuration = models.DurationField(u'最短租期',blank=True,null=True)
+    maxDuration = models.DurationField('最长租期',blank=True,null=True,default=default_maxDuration)
+    minDuration = models.DurationField('最短租期',blank=True,null=True,default=default_minDuration)
     added = models.DateTimeField('发布时间',auto_now_add=True)
     beginTime = models.DateTimeField('暂停起始时间',null=True,blank=True)
     endTime = models.DateTimeField('暂停结束时间',blank=True,null=True)
     description = models.TextField(u'描述', blank=True,null=True)
+    soldable = models.BooleanField("是否卖车",default=False)
+    soldMoney = models.IntegerField("出售价格",blank=True,null=True)
     def user_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
         return 'user/{0}/{1}'.format(instance.bike.owner.user.username, filename)
     def __str__(self):
         return self.name
+    def thumbnail(self):
+        photo = Photo.objects.filter(bike=self)[0]
+        return photo
     class Meta:
         verbose_name = u'自行车'
         verbose_name_plural = u'自行车'

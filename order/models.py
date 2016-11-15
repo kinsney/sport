@@ -16,7 +16,7 @@ class Order(models.Model):
     renter = models.ForeignKey(Participator,verbose_name='租车人')
     beginTime = models.DateTimeField(u'订单开始时间',null=True)
     endTime = models.DateTimeField(u'订单结束时间',null=True)
-    rentMoney = models.DecimalField("应付租金",max_digits=6,decimal_places=2)
+    rentMoney = models.IntegerField("应付租金")
     deposit = models.IntegerField("押金",null=True)
     pledge = models.CharField("抵押证件",null=True,max_length=10,choices=pledgeChoices)
     equipments = models.CharField(u'提供装备',max_length=100,blank=True,null=True)
@@ -70,3 +70,39 @@ class Comments(models.Model):
         ordering = ('added', 'pk')
     def __str__(self):
         return self.content
+
+class Transaction(models.Model):
+    number = models.CharField("编号",max_length=16,null=True,unique=True)
+    bike = models.ForeignKey(Bike,verbose_name=u'所买车辆')
+    amount = models.IntegerField("单车数量",default=1)
+    added = models.DateTimeField('交易时间',auto_now_add=True)
+    renter = models.ForeignKey(Participator,verbose_name='买车人')
+    soldMoney = models.IntegerField("出售价格")
+    status = models.CharField('订单状态',max_length=20,choices=(('completed','已完成'),
+        ('confirming','待确认'),
+        ('rejected','车主已拒绝'),
+        ('canceled','租客已撤回'),
+        ),default='confirming')
+    status_modified = models.DateTimeField(u'状态修改时间',auto_now_add=True,null=True)
+    def __str__(self):
+        return self.number
+    class Meta:
+        verbose_name = u'交易'
+        verbose_name_plural = u'交易'
+        ordering = ('-added', '-pk')
+    def set_status(self,status):
+        '''设置订单状态'''
+        if self.status == status:
+            return
+        if self.status == 'confirming' and status == "completed":
+            self.bike.owner = self.renter
+            self.bike.status = "checking"
+            self.bike.save()
+        self.status = status
+        self.status_modified = timezone.now()
+        self.save()
+    def get_title(self):
+        ''' 返回账单标题 '''
+        return self.bike.name + '售价'
+
+

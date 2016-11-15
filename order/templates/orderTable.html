@@ -1,10 +1,63 @@
 {% load static from staticfiles %}
 {% load tagLibrary %}
+{% for transaction in transactions %}
+<h4 class="header ui orange block top attached ">交易号{{ transaction.number }} </h4>
+<div class="ui attached segment bottom">
+  <a class="ui red ribbon label">{{ transaction.get_status_display }}</a><span>{{ transaction.bike.name }}</span>
+  <p>地址：{{ transaction.bike.address }}</p>
+  <div class="ui items">
+    <div class="item">
+      <div class="ui small image">
+        <img src="{{ transaction.bike.photo.content.url }}" alt="">
+      </div>
+      <div class="content">
+        <dl class="horizontal-list">
+          <dt>价格：</dt><dd>¥{{transaction.soldMoney}}</dd>
+          <dt>单车数量：</dt><dd>{{ transaction.amount }}</dd>
+          {% ifequal transaction.renter participator %}
+            <dt>车主姓名：</dt>
+            <dd>{{ transaction.bike.owner.nickname }}</dd>
+          {% else %}
+            <dt>租客姓名：</dt>
+            <dd>{{ transaction.renter.nickname }}</dd>
+          {% endifequal %}
+          {% ifequal transaction.renter participator %}
+            <dt>车主手机：</dt>
+            <dd>{{ transaction.bike.owner.user.username }}</dd>
+            {% else %}
+            <dt>租客手机：</dt>
+            <dd>{{ transaction.renter.user.username }}</dd>
+            {% endifequal %}
+            <dt>预定时间：</dt>
+            <dd>{{ transaction.added|date:"Y-m-d H:i" }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="clearfix">
+    {% ifequal transaction.bike.owner participator %}
+      {% if transaction.status == 'confirming' %}
+      <button class="ui right floated button orange nodTransaction" data-trannumber="{{ transaction.number }}" >确认交易</button>
+      <div class="ui right floated button orange cancelTransaction" data-trannumber="{{ transaction.number }}">拒绝交易</div>
+      {% endif %}
+    {% else %}
+      {% if transaction.status == 'confirming' %}
+      <div class="ui right floated button orange cancelTransaction" data-trannumber="{{ transaction.number }}">撤回交易请求</div>
+      {% endif %}
+    {% endifequal %}
+  </div>
+</div>
+{% endfor %}
+
+
+
+
+
 {% for order in orders %}
           <h4 class="header ui orange block top attached ">订单号：{{ order.number }} </h4>
           <div class="ui attached segment bottom  ">
             <a class="ui red ribbon label">{{ order.get_status_display }}</a><span>{{ order.bike.name }}</span>
-            <p>{{ order.bike.address }} 租金：¥{{ order.rentMoney }}</p>
+            <p>地址：{{ order.bike.address }} 租金：¥{{ order.rentMoney }}</p>
             <div class="ui items">
               <div class="item">
                 <div class="ui small image">
@@ -105,3 +158,4 @@
             {% endifequal %}
           </div>
 {% endfor %}
+

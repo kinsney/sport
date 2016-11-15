@@ -4,3 +4,4 @@ django-picklefield
 Pillow
 pymysql
 requests==2.9.1
+hashlib

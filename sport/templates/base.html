@@ -23,7 +23,7 @@
     <div class="pusher">
         <div class="ui inverted  orange vertical masthead center aligned segment head">
             <div class="ui container ">
-                <div class="ui large secondary inverted menu">
+                <div class="ui secondary inverted menu">
                 <a href="/" class='ui image logo'><img src="{% static "images/logo.png"%}" alt=""></a>
                 <div class="right item">
                 {% if user.is_authenticated %}
@@ -42,7 +42,8 @@
                             <i class="sidebar icon"></i>
                         </a>
                     </div>
-
+                <a class="ui inverted button" href="{% url "bikeSubmit" %}" style="margin-right: 5px">租车发布</a>
+                <a class="ui inverted button" href="/bike/submit?sold=true" style="margin-right: 5px">售卖发布</a>
                 {% else %}
                   <a class="ui inverted button" href="#login" style="margin-right: 5px">登录</a>
                   <a class="ui inverted button" href="#register">注册</a>
@@ -57,14 +58,14 @@
         {% endblock %}
             </div>
 {% block footer %}
-    <div class='ui vertical footer segment inverted'>
-        <div class='ui container'>
-            <div class='ui stackable inverted divided equal height grid'>
+    <div class='ui white vertical footer segment inverted'>
+        <div class='ui center aligned container'>
+            <div class='ui stackable inverted equal height grid'>
                 <div class='two wide column '>
-                    <h4 class='ui header inverted'>关于我们</h4>
+                    <h4 class='ui header inverted'>指南</h4>
                     <div class="ui inverted link list">
-                        <a href="#" class="item">关于骑客</a>
-                        <a href="#" class="item">联系我们</a>
+                        <a href="#" class="item">租客指南</a>
+                        <a href="#" class="item">车主指南</a>
                     </div>
                 </div>
                 <div class='two wide column '>

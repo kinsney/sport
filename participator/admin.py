@@ -3,6 +3,7 @@ from .models import Participator,Province,University,City,VerifyCategory,VerifyA
 from message.models import Message
 # Register your models here.
 
+#用户身份认证成功
 def participator_verify(modeladmin, request, queryset):
     queryset.update(status='verified')
     for participator in queryset:
@@ -10,7 +11,7 @@ def participator_verify(modeladmin, request, queryset):
             content = "{"+'"{0}":"{1}"'.format('address','www.qikezuche.com')+"}"
             Message(target=participator.user.username,
                 content=content,
-                template_code='SMS_6975097'
+                template_code='SMS_25760038'
                 ).save()
         except Exception:
             pass
@@ -35,8 +36,8 @@ class VerifyAttachmentInline(admin.TabularInline):
 
 @admin.register(Participator)
 class ParticipatorAdmin(admin.ModelAdmin):
-    search_fields = ['realname','user__username','university__name']
-    list_display = ('user','realname','status')
+    search_fields = ['realname','user__username','school__name','nickname']
+    list_display = ('user','realname','status','school')
     inlines = (VerifyAttachmentInline,)
     actions = [participator_verify]
 

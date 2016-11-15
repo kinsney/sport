@@ -1,0 +1,19 @@
+@import "import/bikeForm";
+body{
+    overflow-y:hidden
+}
+#leftblock{
+    overflow-y: scroll;
+}
+.buttons .button{
+    i.checkmark{
+        visibility: hidden!important;
+    }
+     &.active{
+        background-color: #ff9600!important;
+        color:#fff!important;
+        i.checkmark{
+            visibility:visible !important;
+        }
+     }
+}

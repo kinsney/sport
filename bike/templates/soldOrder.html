@@ -1,0 +1,40 @@
+<div class="ui segment soldOrder">
+    <h4 class='ui header dividing orange'><i class='icon attach'></i>出售定价</h4>
+    <div class='field ui required'>
+        <label for="" class='label'>出售价格</label>
+        <div class='ui right labeled input left icon fluid'>
+            <i class='icon yen'></i>
+            <input type="text" placeholder="请填写出售价格" name="soldMoney" data-validate="soldMoney">
+            <div class='ui basic label'>元</div>
+        </div>
+    </div>
+    <div class='field required'>
+        <label for="">出售规则</label>
+        <div class="ui stacked segment orange">
+            <p>租客取消订单和提前还车时间以骑客租车系统中记录的时间为准。如与租客产生争议，请在争议发生后24小时内联系客服，我们会尽最大努力维护您的正当权益。</p>
+        </div>
+    </div>
+</div>
+<script>
+$(function(){
+    $('.bikesubmit.form').form({
+        inline:true,
+        fields:{
+            soldMoney:{
+                identifier:'soldMoney',
+                rules:[
+                    {
+                        type:'integer[1..999999]',
+                        prompt:'为了方便计算，还是输入个合适的整数吧'
+                    },
+                    {
+                        type:'empty',
+                        prompt:'免费赠送嘛？'
+                    }
+                ]
+            }
+        }
+    })
+})
+
+</script>

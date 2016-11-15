@@ -1,0 +1,24 @@
+{% load static from staticfiles %}
+<link rel="stylesheet" href="{% static "css/bikeCard.css"%}">
+{% for bike in bikes %}
+<div class='ui card' id="{{ bike.number }}">
+    <a href="{% url "soldorder" bike.number %}" class='ui image'>
+        <label class="ui left ribbon label" style="z-index:1">{{ bike.get_status_display }}</label>
+        <img class='visible content' src="{{ bike.photo.content.url }}" alt="">
+        <div class='price ui bottom left attached'>
+
+        </div>
+    </a>
+    <div class="content">
+        <div class="header">{{ bike.name }}<!-- <a class="ui image label floated bottom right"><img src="{% static "images/man.png" %}">{{ bike.owner.nickname }}</a> --></div>
+        <div class="description">{{ bike.version.category }}-{{ bike.address }}</div>
+        <div class="extra content">
+            <div class='ui mini statistic'>
+                <div class=' ui value'>
+                    <i class='icon ui yen tiny'></i>{{ bike.soldMoney |floatformat:"0"}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}

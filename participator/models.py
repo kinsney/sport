@@ -64,9 +64,7 @@ class Participator(models.Model):
     male = models.NullBooleanField(u'性别', choices=GENDER, help_text=u'是为男，否为女', default=None)
     PersonId = models.CharField(u'身份证号', max_length=18, validators=[IdCardValidator()], blank=True)
     studentId = models.CharField(u'学号', max_length=18, blank=True)
-    school = models.ForeignKey(University, verbose_name='所属学校', null=True, blank=True)
-    added = models.DateTimeField(u'注册时间',auto_now_add = True)
-    enrol = models.CharField(u'入学年份', max_length=4, choices=ENROLS, blank=True)
+    school = models.ForeignKey(University, verbose_name='所属学校', null=True, blank=True,)
     status = models.CharField(u'用户状态',choices=(
         ('verified',u'通过审核'),
         ('verifing',u'等待审核'),
@@ -80,7 +78,6 @@ class Participator(models.Model):
         (3,'三星'),
         (4,'四星'),
         (5,'五星')),default=0)
-    lastLogin = models.DateTimeField(u'最后一次登录时间',auto_now_add = True)
     memo = models.TextField('备注', blank=True)
     objects = ParticipatorManager()
 

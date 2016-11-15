@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load tagLibrary %}
 {% load staticfiles %}
-{% load bill %}
+{% block title %}订单确认{% endblock %}
 {% block stylesheets %}
 {{ block.super }}
 <style>
@@ -183,12 +183,12 @@ var equipments_array = ''
         </div>
     </div>
     <div class="divider ui"></div>
-    <div class="item">
+    <div class="item" style="display: table;width:100%">
+        <p class="submitnotice">注：提交订单表示已阅读并默认同意上方的<span class="submitnoticespan">《退订规则》</span>及<a href="../html/service.html" class="submitnoticespan">《服务协议》</a>
+        </p>
         <button class="ui right floated button orange" type="submit">
             提交订单
         </button>
-        <p class="submitnotice">注：提交订单表示已阅读并默认同意上方的<span class="submitnoticespan">《退订规则》</span>及<a href="../html/service.html" class="submitnoticespan">《服务协议》</a>
-        </p>
     </div>
 </form>
 </div>

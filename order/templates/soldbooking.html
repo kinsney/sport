@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% load tagLibrary %}
+{% load staticfiles %}
+{% block title %}确认预约{% endblock %}
+{% block stylesheets %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-datetimepicker.min.css" %}">
+<link rel="stylesheet" href="{% static "css/overbooking.css" %}">
+<style>
+.map{
+    padding:0 !important;
+}
+</style>
+{% endblock %}
+{% block scripts%}
+{{ block.super }}
+<script type="text/javascript" src="{% static "js/library/bootstrap-datetimepicker.min.js"%}"></script>
+<script src="http://api.map.baidu.com/api?v=2.0&ak=YOOj78k6VSa1CzmQXrKS9gUm"></script>
+<script>
+     var map = new BMap.Map("map");    // 创建Map实例
+    map.centerAndZoom(new BMap.Point(116.36765, 39.968237), 16);  // 初始化地图,设置中心点坐标和地图级别
+    map.disableScrollWheelZoom();
+    map.enableDoubleClickZoom();
+    // map.addControl(new BMap.MapTypeControl());   //添加地图类型控件
+    map.setCurrentCity("北京");
+    var top_right_navigation = new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_RIGHT, type: BMAP_NAVIGATION_CONTROL_SMALL}); //右上角，仅包含平移和缩放按钮
+        map.addControl(top_right_navigation);
+    function addMarker(point) {
+        var myIcon = new BMap.Icon("{% static "images/map.png" %}", new BMap.Size(50, 110),
+        {   offset: new BMap.Size(0, 0),
+            imageOffset: new BMap.Size(0, 0)
+        });
+        var marker = new BMap.Marker(point, { icon: myIcon });
+        map.addOverlay(marker);
+    }
+    var pt = new BMap.Point({{bike.address.longitude}},{{bike.address.latitude}})
+    addMarker(pt)
+    map.centerAndZoom(pt,17);
+
+    $('.progress.howOld').progress({
+        text:{
+            percent:'新旧程度{percent}%'
+        }
+    })
+    $('#starttime').datetimepicker({
+
+            language:'zh-CN',
+
+        });
+    $('#endtime').datetimepicker({
+
+        language:'zh-CN',
+
+    });
+</script>
+{% endblock %}
+{% block content %}
+{{ block.super }}
+    <h2 class="ui header">
+          <i class="settings icon"></i>
+          <div class="content">{{ bike.name }}{% if bike.beginTime %}<span class='ui label red'>{{bike.beginTime|date:"Y-m-d H:i:s"}}到{{bike.endTime|date:"Y-m-d H:i:s"}}&nbsp不可租</span>{% endif %}
+            <div class="sub header">{{bike.address}}</div>
+          </div>
+    </h2>
+    <div class='ui grid stackable'>
+        <div class='eleven wide column'>
+            <div class='ui image fluid'>
+                <img src="{{ photos.0.content.url }}" alt="">
+            </div>
+            <div class="ui top attached tabular menu">
+              <a class="item active" data-tab='info'><i class='icon list'></i>详情信息</a>
+              <a class="item" data-tab='comment'><i class='icon comments'></i>租客评价</a>
+        </div>
+        <div data-tab="info" class='ui bottom attached segment tab active'>
+            <h4 class='ui header dividing  orange attached top'><i class='file text icon'></i>基本信息</h4>
+            <div class='ui attached bottom segment'>
+                <div class='ui horizontal list'>
+                    <div class='item'>
+                        <div class="ui labeled button">
+                            <div class="ui button orange"><i class='heart icon'></i>品牌型号</div>
+                            <a class="ui basic label">
+                                {{ bike.version.brand }}&nbsp{{ bike.version }}
+                            </a>
+                        </div>
+                    </div>
+                    <div class='item'>
+                        <div class="ui labeled button">
+                            <div class="ui button orange">适合性别</div>
+                            <a class="ui basic label">
+                                <i class='{{bike.sexualFix }} icon'></i>
+                                {{bike.get_sexualFix_display }}
+                            </a>
+                        </div>
+                    </div>
+                    <div class='item'>
+                        <div class="ui labeled button">
+                            <div class="ui button orange">适合身高</div>
+                            <a class="ui basic label">
+                            {{ bike.suitHeight }}
+                            </a>
+                        </div>
+                    </div>
+                    <div class='item'>
+                        <div class="ui labeled button">
+                                <div class="ui button">单车类型</div>
+                                <a class="ui basic label">
+                                {{ bike.version.category}}
+                                </a>
+                        </div>
+                    </div>
+                </div>
+                 <div class="ui teal progress howOld" data-percent="{{ bike.howOld }}" id="example1">
+                          <div class="bar"><div class="progress"></div></div>
+                    </div>
+            </div>
+            <h4 class='ui header dividing  orange attached top'><i class='gift icon'></i>提供装备</h4>
+            <div class='ui attached bottom segment'>
+                {% for equipment in equipments %}
+                    <div class='ui button'>{{ equipment | equipment}}</div>
+                {% endfor %}
+            </div>
+            <h4 class='ui header dividing  orange attached top'><i class='marker icon'></i>详细地址</h4>
+            <div class='ui attached bottom segment map'>
+                <div id="map" style="height: 250px">
+                </div>
+            </div>
+        </div>
+        <div data-tab = 'comment' class='ui segment tab bottom attached'>
+        </div>
+        </div>
+        <div class='five wide column'>
+            <div class='ui segment'>
+                <form action="{% url "soldConfirm" bike.number %}" method="post">
+                    {% csrf_token %}
+                <label class="dayRent" for="" ><i class='yen icon'></i>{{ bike.soldMoney|floatformat:"0"}}</label>
+                <div class='list ui'>
+                    <div class='item'>
+                        <div class='right floated content'>
+                            <div class="ui input"><input style="width:40px;"class="ui input" type="text" name="bikeNumber" value="1"></div>
+                            <div class="ui icon buttons">
+                                <button class='ui button'><i class='minus icon'></i></button><button class="ui button"><i class='plus icon'></i></button>
+                            </div>
+                            <div class='bottom right attached label' style="text-align: right">（剩下{{bike.amount}}辆）</div>
+                        </div>
+                        <div class='content'>数量</div>
+                    </div>
+                </div>
+                <button class="ui fluid orange button submit" type="submit">售价共<span>{{ bike.soldMoney|floatformat:"0"}}</span>元|立即预定</button>
+            </form>
+            </div>
+            <div class='ui segment'>
+                <div class="ui card">
+                    <div class="image">
+                      <img {% if bike.owner.avatar %}src="{{ bike.owner.avatar.url }}"{% else %}src="{% static "images/man.png"%}" {% endif %}>
+                    </div>
+                    <div class="content">
+                      <div class="header">{{ bike.owner.nickname }}</div>
+                      <div class="meta">
+                        <a>车主</a>
+                      </div>
+                    </div>
+                    <div class="extra content">
+                      <span class="right floated">{{ bike.added |date:"Y-m-d H:i" }}</span>
+                      <div class='ui star rating readonly' data-rating="{{ bike.owner.level }}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block footer %}
+{{ block.super }}
+{% endblock %}

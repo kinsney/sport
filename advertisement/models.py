@@ -11,7 +11,6 @@ class Advertisement(models.Model):
     position = models.CharField(u'位置', max_length=32,
         choices=POSITIONS)
     show = models.BooleanField(u'显示', default=False)
-    text = models.CharField(u'副文本',max_length=64,blank=True)
     order = models.SmallIntegerField(u'顺序', default=0)
 
     def __str__(self):

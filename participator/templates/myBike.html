@@ -1,6 +1,7 @@
 {% extends "participator_base.html" %}
 {% load static from staticfiles %}
 {% load tagLibrary %}
+{% block title %}我的单车{% endblock %}
 {% block stylesheets %}
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-datetimepicker.min.css" %}">
@@ -9,9 +10,18 @@
 {% block scripts %}
 {{ block.super }}
 <script type="text/javascript" src="{% static "components/api.min.js"%}"></script>
+<script src="{% static "components/checkbox.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/library/bootstrap-datetimepicker.min.js"%}"></script>
     <script>
-
+    var moneyinput = '<label class="label required">售价</label><div class="ui input"><input type="text" name="soldMoney"></div>'
+    $('.ui.checkbox').checkbox({
+        onChecked:function(){
+            $('.soldMoney').html(moneyinput)
+        },
+        onUnchecked:function(){
+            $('.soldMoney').html("")
+        }
+    })
             $('input.beginTime').datetimepicker({
 
             language:'zh-CN',
@@ -64,7 +74,6 @@
                 }
             })
         })
-
         $('a.bikeDelete').on('click',function(){
           bikenumber = $(this).data('bikenumber')
           $('.modal.bikeDelete').modal('show')
@@ -85,6 +94,11 @@
               }
           })
          })
+
+        $('button.bikeSoldModify').on('click',function(){
+          bikenumber = $(this).data('bikenumber')
+          $('#'+bikenumber).modal('show').attr('action','/bike/bikeSoldModify/'+bikenumber)
+         })
     </script>
 {% endblock %}
 
@@ -95,8 +109,9 @@
 <div class='ui stacked'>
     {% for bike in bikes %}
         <h4 class='ui dividing header block top attached'>
-            <a class="ui orange image label"><img src="{{ bike.photos.0.content.url }}">{{ bike.name }} <div class="detail">{{ bike.get_status_display }}</div>
+            <a class="ui orange image label"><img src="{{ bike.photos.0.content.url }}">{{ bike.name }}<div class="detail">{{ bike.get_status_display }}</div>
             </a>
+            <div class="ui teal tag label">{{ bike.soldable|yesno:"可交易,不可交易,未知" }}</div>
         </h4>
         <div class='ui horizontal segment attached bottom'>
                 <a class="ui top right attached label label orange">编号：{{ bike.number }}</a>
@@ -133,7 +148,15 @@
                                 </div>
                                 <div class="label">/周</div>
                             </div>
-                            <span class="right floated">{{ bike.added |date:"Y-m-d H:i:s"}}加入 </span>
+                        {% if bike.soldable %}
+                        <div class='ui tiny statistic'>
+                            <div class=' ui value'>
+                                <i class='icon ui yen tiny'></i>{{ bike.soldMoney}}
+                            </div>
+                            <div class="label">售价</div>
+                        </div>
+                        {% endif %}
+                        <span class="right floated">{{ bike.added |date:"Y-m-d H:i:s"}}加入 </span>
                     </div>
                 </div>
                 <div class='ui card'>
@@ -142,7 +165,7 @@
                             <div class="ui labeled button">
                                 <div class="ui button orange"><i class='heart icon'></i>品牌型号</div>
                                 <a class="ui basic label">
-                                {{ bike.version.brand }}&nbsp{{ bike.version }}
+                                {{ bike.version.brand }}-{{ bike.version }}
                                 </a>
                             </div>
                         </div>
@@ -151,6 +174,23 @@
                                 <div class="ui button">单车类型</div>
                                 <a class="ui basic label">
                                 {{ bike.version.category}}
+                                </a>
+                            </div>
+                        </div>
+                        <div class='ui item'>
+                            <div class="ui labeled button">
+                                <div class="ui button">取车地址</div>
+                                <a class="ui basic label">
+                                <i class='icon map'></i>
+                                {{ bike.address }}
+                                </a>
+                            </div>
+                        </div>
+                        <div class='ui item'>
+                            <div class="ui labeled button">
+                                <div class="ui button">免费提供装备</div>
+                                <a class="ui basic label">
+                                {{ bike.equipment|equipment }}
                                 </a>
                             </div>
                         </div>
@@ -169,15 +209,6 @@
                                 <a class="ui basic label">
                                 <i class='icon {{ bike.sexualFix }}'></i>
                                 {{ bike.get_suitHeight_display }}
-                                </a>
-                            </div>
-                        </div>
-                        <div class='ui item'>
-                            <div class="ui labeled button">
-                                <div class="ui button">取车地址</div>
-                                <a class="ui basic label">
-                                <i class='icon map'></i>
-                                {{ bike.address }}
                                 </a>
                             </div>
                         </div>
@@ -201,7 +232,7 @@
                             <div class="ui labeled button" >
                                 <div class="ui button">租期范围</div>
                                 <a class="ui basic label">
-                                {{ bike.minDuration}}-{{bike.maxDuration}}
+                                {% if bike.minDuration %}{{ bike.minDuration}}-{{bike.maxDuration}}{% else %}未设置{% endif %}
                                 </a>
                             </div>
                         </div>
@@ -211,14 +242,6 @@
                                 <a class="ui basic label">
                                 <i class='yen icon'></i>
                                 {{ bike.deposit }}
-                                </a>
-                            </div>
-                        </div>
-                        <div class='ui item'>
-                            <div class="ui labeled button">
-                                <div class="ui button">免费提供装备</div>
-                                <a class="ui basic label">
-                                {{ bike.equipment|equipment }}
                                 </a>
                             </div>
                         </div>
@@ -246,8 +269,37 @@
                 </div>
                 </div>
                 <a class="button positive ui" href="{% url "bikeModify" bike.number %}"><i class='icon configure'></i>修改单车</a>
+                <button class="button blue ui bikeSoldModify" data-bikenumber="{{ bike.number }}"><i class='icon shop'></i>出售单车设置</button>
                 <a  class="button negative ui bikeDelete" data-bikenumber = "{{ bike.number }}"><i class="icon recycle"></i>删除单车</a>
         </div>
+        <form class="ui fullscreen modal transition" id="{{bike.number}}" method="POST">
+            {% csrf_token %}
+            <i class="close icon"></i>
+            <div class="header">出售单车设置</div>
+            <div class="ui form content">
+                <div class="field">
+                    <label for="" class='label required'>是否出售单车</label>
+                    <span>否</span>
+                    <div class="ui slider checkbox">
+                        <input type="checkbox" name="soldable" {% if bike.soldable %}checked{% endif %} >
+                        <label>是</label>
+                    </div>
+                </div>
+
+                <div class="field soldMoney">
+                    {% if bike.soldable %}
+                    <label for="" class='label required'>售价</label>
+                    <div class="ui input">
+                        <input type="text" name="soldMoney" value="{{ bike.soldMoney }}"><div class='ui basic label'>元</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="actions">
+                <div class="ui button basic cancel">取消</div>
+                <button class="ui button blue send" type="submit">确认</button>
+            </div>
+    </form>
 
     {% endfor %}
         <div class="ui basic small modal bikeDelete">
